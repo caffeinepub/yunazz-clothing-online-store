@@ -1,0 +1,16 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-17T14:44:56.215Z",
+  "summary": "Diff adds a PaymentMethod variant type to backend OrderRecord and updates checkout flow to support UPI, Card (Stripe redirect), and Cash on Delivery with appropriate order persistence and user-facing confirmations. Orders page behavior is referenced in the diff summary file listing but the OrdersPage code itself is not shown/modified in this diff excerpt.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.63,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/CheckoutDialog.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "project_state.json"
+  ]
+}

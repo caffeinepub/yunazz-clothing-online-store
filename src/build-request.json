@@ -1,0 +1,56 @@
+{
+  "kind": "build_request",
+  "title": "Add checkout payment methods: UPI, Card, and Cash on Delivery",
+  "projectName": "Yunazz Clothing",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-3",
+      "text": "Offer three payment methods at checkout—UPI, Card, and Cash on Delivery (COD)—and ensure the selected method is saved on the order and shown on the Orders page.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Payment method upi card and cod"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Checkout UI shows selectable options for UPI, Card, and Cash on Delivery (COD) using clear English labels.",
+        "Placing an order persists the selected payment method in the stored order record.",
+        "Orders page displays the correct payment method label for each order (UPI, Card, Cash on Delivery)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure the Card payment flow uses Stripe Checkout session creation and redirects the user to Stripe, while UPI and COD place the order without redirect and show a confirmation message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Payment method upi card and cod"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When Card is selected, the app creates a Stripe Checkout session and redirects the browser to the returned Stripe session URL.",
+        "When UPI is selected, the app places the order and shows an on-screen confirmation message indicating the user should complete UPI payment.",
+        "When COD is selected, the app places the order and shows an on-screen confirmation message indicating payment will be collected on delivery."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; only add a migration file if existing stable state must be upgraded.",
+    "Do not modify files under frontend/src/components/ui or other immutablePaths; compose existing UI components instead."
+  ],
+  "nonGoals": [
+    "Implementing a real UPI payment gateway or verifying UPI payment completion on-chain/off-chain.",
+    "Adding additional payment methods beyond UPI, Card (Stripe), and Cash on Delivery."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

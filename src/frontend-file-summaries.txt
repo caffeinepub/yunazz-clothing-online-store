@@ -1,0 +1,23 @@
+{
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, defining all routes (home, products, admin, contact, orders, payment pages) and wrapping with ThemeProvider and Toaster.",
+  "frontend/src/components/Layout.tsx": "Root layout component that renders Header, main content area with Outlet for nested routes, Footer, and ProfileSetupModal.",
+  "frontend/src/components/Header.tsx": "Responsive navigation header with Yunazz logo, navigation links, login/logout button, and mobile menu with authentication state management.",
+  "frontend/src/components/Footer.tsx": "Simple footer component displaying copyright notice with caffeine.ai attribution and heart icon.",
+  "frontend/src/components/ProfileSetupModal.tsx": "Modal dialog that appears for authenticated users without a profile, collecting name, email, phone, and address information.",
+  "frontend/src/pages/HomePage.tsx": "Landing page with hero banner, featured products grid, and about section showcasing Yunazz Clothing brand and benefits.",
+  "frontend/src/pages/ProductsPage.tsx": "Product catalog page with filtering sidebar (desktop) and sheet (mobile), supporting search, category, size, and price filters.",
+  "frontend/src/pages/ProductDetailPage.tsx": "Individual product detail page with image carousel, size selection, stock information, and buy now button that opens checkout dialog.",
+  "frontend/src/pages/ContactPage.tsx": "Contact information page displaying phone, email, Instagram handle with link, and Instagram QR code for easy following.",
+  "frontend/src/pages/AdminDashboard.tsx": "Admin-only dashboard with tabs for product management, Stripe payment setup, and contact information management with role-based access control.",
+  "frontend/src/pages/OrdersPage.tsx": "User orders page displaying order history with product details, payment method labels (UPI, Card, Cash on Delivery), status badges, and total amounts.",
+  "frontend/src/pages/PaymentSuccessPage.tsx": "Success page shown after successful payment with options to view orders or continue shopping.",
+  "frontend/src/pages/PaymentFailurePage.tsx": "Failure page shown when payment fails with options to return to products or contact support.",
+  "frontend/src/components/ProductCard.tsx": "Reusable product card component displaying product image, name, type, description, price, and availability badge.",
+  "frontend/src/components/CheckoutDialog.tsx": "Checkout dialog component with three payment methods (UPI, Card, Cash on Delivery) with clear English labels, proper PaymentMethod enum mapping, validated Stripe redirect using window.location.href, and distinct on-screen confirmation messages for UPI and COD payments.",
+  "frontend/src/components/admin/ProductManagement.tsx": "Admin component for managing products with list view showing product thumbnails with fallback placeholder when no images exist, edit, delete actions, and add product button.",
+  "frontend/src/components/admin/ProductFormDialog.tsx": "Dialog form for adding/editing products with enhanced image management supporting upload, remove individual images, clear all images, upload progress tracking, and proper error handling with English messages.",
+  "frontend/src/components/admin/StripeSetup.tsx": "Admin component for configuring Stripe payment integration with enhanced payment methods overview showing all three options (UPI, Card, COD) with visual indicators and status badges.",
+  "frontend/src/components/admin/ContactInfoManagement.tsx": "Admin component for managing store contact information including phone, email, Instagram handle, and QR code upload with proper ExternalBlob type handling.",
+  "frontend/src/hooks/useQueries.ts": "Custom React Query hooks for all backend operations including hardened Stripe checkout session creation with JSON parsing and URL validation, user profiles, products, contact info, and orders with proper cache invalidation.",
+  "frontend/src/index.css": "Global styles with OKLCH color system defining elegant clothing store palette with sophisticated charcoal, warm beige, and elegant gold tones for both light and dark modes."
+}

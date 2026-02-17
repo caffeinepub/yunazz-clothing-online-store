@@ -1,0 +1,49 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Checkout payment methods (UPI, Card via Stripe, COD) and order display",
+  "requirements": [
+    {
+      "id": "REQ-3",
+      "summary": "Provide UPI, Card, and Cash on Delivery options at checkout and display the saved selection on the Orders page.",
+      "acceptanceCriteria": [
+        "Checkout UI shows selectable options for UPI, Card, and Cash on Delivery (COD) using clear English labels.",
+        "Placing an order persists the selected payment method in the stored order record.",
+        "Orders page displays the correct payment method label for each order (UPI, Card, Cash on Delivery)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/CheckoutDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure the checkout payment-method radio group presents exactly three options with clear labels (UPI, Card, Cash on Delivery (COD)), and that the selected option is mapped to the backend PaymentMethod enum and included in the OrderRecord passed to placeOrder(). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/OrdersPage.tsx",
+          "operation": "modify",
+          "description": "Normalize and display payment method labels derived from the order.paymentMethod value so each order shows UPI, Card, or Cash on Delivery consistently (including handling any enum/string representation differences)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Use Stripe Checkout redirect for Card payments; place orders in-app for UPI/COD and show confirmation messaging without redirect.",
+      "acceptanceCriteria": [
+        "When Card is selected, the app creates a Stripe Checkout session and redirects the browser to the returned Stripe session URL.",
+        "When UPI is selected, the app places the order and shows an on-screen confirmation message indicating the user should complete UPI payment.",
+        "When COD is selected, the app places the order and shows an on-screen confirmation message indicating payment will be collected on delivery."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Harden the Stripe Card flow by updating useCreateCheckoutSession() to JSON-parse the backend response and validate that a non-empty session.url exists; if missing, throw an error and do not redirect. Use the selected stripe component flow guidance. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/CheckoutDialog.tsx",
+          "operation": "modify",
+          "description": "For Card selection, call the Stripe Checkout session creation hook and redirect using window.location.href to the validated session.url (do not use router navigation). For UPI and COD, place the order without redirect and show distinct on-screen confirmations (toast is acceptable) matching the requirement wording. Use the selected stripe component flow guidance. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

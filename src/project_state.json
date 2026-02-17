@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-improve-the-admin-product-editor-so-an-admin-can-reliably-replace-and-update-product-model-images-upload-new-images-remove-existing-images-and-save-changes-and-have-those-updated-images-immediately-reflected-on-the-storefront-product-cards-product-details-carousel-and-admin-list-thumbnails",
+      "title": "Improve the Admin product editor so an admin can reliably replace and update product/model images (upload new images, remove existing images, and save changes) and have those updated images immediately reflected on the storefront (product cards, product details carousel, and admin list thumbnails).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-offer-three-payment-methods-at-checkout-upi-card-and-cash-on-delivery-cod-and-ensure-the-selected-method-is-saved-on-the-order-and-shown-on-the-orders-page",
+      "title": "Offer three payment methods at checkout—UPI, Card, and Cash on Delivery (COD)—and ensure the selected method is saved on the order and shown on the Orders page.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-card-payment-flow-uses-stripe-checkout-session-creation-and-redirects-the-user-to-stripe-while-upi-and-cod-place-the-order-without-redirect-and-show-a-confirmation-message",
+      "title": "Ensure the Card payment flow uses Stripe Checkout session creation and redirects the user to Stripe, while UPI and COD place the order without redirect and show a confirmation message.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Allow updating model/product pictures on the Yunazz Clothing online store (e.g., replace images used for products or site visuals).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure the backend product update path used by the admin UI persists updated images without requiring deletion/re-creation of the product.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add payment methods: UPI, Card, and Cash on Delivery (COD) at checkout.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Yunazz Clothing",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

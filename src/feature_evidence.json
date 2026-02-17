@@ -1,0 +1,50 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-offer-three-payment-methods-at-checkout-upi-card-and-cash-on-delivery-cod-and-ensure-the-selected-method-is-saved-on-the-order-and-shown-on-the-orders-page",
+      "featureTitle": "Offer three payment methods at checkout—UPI, Card, and Cash on Delivery (COD)—and ensure the selected method is saved on the order and shown on the Orders page.",
+      "files": [
+        "frontend/src/components/CheckoutDialog.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-card-payment-flow-uses-stripe-checkout-session-creation-and-redirects-the-user-to-stripe-while-upi-and-cod-place-the-order-without-redirect-and-show-a-confirmation-message",
+      "featureTitle": "Ensure the Card payment flow uses Stripe Checkout session creation and redirects the user to Stripe, while UPI and COD place the order without redirect and show a confirmation message.",
+      "files": [
+        "frontend/src/components/CheckoutDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "stripe@3.0.0",
+        "http-outcalls@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
