@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import ContactInfoManagement from "../components/admin/ContactInfoManagement";
 import ProductManagement from "../components/admin/ProductManagement";
 import StripeSetup from "../components/admin/StripeSetup";
+import { useActor } from "../hooks/useActor";
 import {
   useGetAllProducts,
   useGetCallerUserRole,
@@ -22,36 +23,34 @@ import {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { data: userRole, isLoading: roleLoading } = useGetCallerUserRole();
+  const { isFetching: actorFetching } = useActor();
+  const {
+    data: userRole,
+    isLoading: roleLoading,
+    isPending: rolePending,
+  } = useGetCallerUserRole();
   const { data: products = [] } = useGetAllProducts();
   const initializeAccessControl = useInitializeAccessControl();
 
   const handleActivateAdmin = async () => {
     try {
       await initializeAccessControl.mutateAsync();
-      toast.success(
-        "Admin access activated successfully! You now have full admin access.",
-      );
+      toast.success("Admin access activated successfully!");
     } catch (error: any) {
       let errorMessage = "An error occurred";
-      if (typeof error === "string") {
-        errorMessage = error;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.toString) {
-        errorMessage = error.toString();
-      }
+      if (typeof error === "string") errorMessage = error;
+      else if (error?.message) errorMessage = error.message;
       toast.error(`Failed to activate admin: ${errorMessage}`);
       console.error("Admin activation error:", error);
     }
   };
 
-  if (roleLoading) {
+  if (actorFetching || roleLoading || rolePending) {
     return (
       <div className="container py-16">
-        <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-muted rounded w-1/3" />
-          <div className="h-64 bg-muted rounded" />
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Loading admin dashboard...</p>
         </div>
       </div>
     );
