@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "@tanstack/react-router";
+import { ArrowRight, CheckCircle } from "lucide-react";
+import { useEffect } from "react";
 
 export default function PaymentSuccessPage() {
   const navigate = useNavigate();
@@ -19,14 +19,18 @@ export default function PaymentSuccessPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-muted-foreground">
-              Thank you for your purchase. Your order has been confirmed and will be processed shortly.
+              Thank you for your purchase. Your order has been confirmed and
+              will be processed shortly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => navigate({ to: '/orders' })}>
+              <Button onClick={() => navigate({ to: "/orders" })}>
                 View My Orders
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={() => navigate({ to: '/products' })}>
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: "/products" })}
+              >
                 Continue Shopping
               </Button>
             </div>

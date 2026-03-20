@@ -1,7 +1,7 @@
-import { useGetContactInfo } from '../hooks/useQueries';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone } from 'lucide-react';
-import { SiInstagram } from 'react-icons/si';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Phone } from "lucide-react";
+import { SiInstagram } from "react-icons/si";
+import { useGetContactInfo } from "../hooks/useQueries";
 
 export default function ContactPage() {
   const { data: contactInfo, isLoading } = useGetContactInfo();
@@ -24,9 +24,12 @@ export default function ContactPage() {
     <div className="container py-16">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Get in Touch</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+            Get in Touch
+          </h1>
           <p className="text-lg text-muted-foreground">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            Have questions? We'd love to hear from you. Send us a message and
+            we'll respond as soon as possible.
           </p>
         </div>
 
@@ -39,8 +42,11 @@ export default function ContactPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <a href={`tel:${contactInfo?.phone}`} className="text-lg hover:text-primary transition-colors">
-                {contactInfo?.phone || '8904107520'}
+              <a
+                href={`tel:${contactInfo?.phone}`}
+                className="text-lg hover:text-primary transition-colors"
+              >
+                {contactInfo?.phone || "8904107520"}
               </a>
             </CardContent>
           </Card>
@@ -53,8 +59,11 @@ export default function ContactPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <a href={`mailto:${contactInfo?.email}`} className="text-lg hover:text-primary transition-colors">
-                {contactInfo?.email || 'ymd72675@gmail.com'}
+              <a
+                href={`mailto:${contactInfo?.email}`}
+                className="text-lg hover:text-primary transition-colors"
+              >
+                {contactInfo?.email || "ymd72675@gmail.com"}
               </a>
             </CardContent>
           </Card>
@@ -85,15 +94,17 @@ export default function ContactPage() {
                 )}
               </div>
               <div className="flex-1 text-center md:text-left">
-                <p className="text-lg mb-4">Scan the QR code or click below to follow us</p>
+                <p className="text-lg mb-4">
+                  Scan the QR code or click below to follow us
+                </p>
                 <a
-                  href={`https://instagram.com/${(contactInfo?.instagram || '@yunazzclotheshub').replace('@', '')}`}
+                  href={`https://instagram.com/${(contactInfo?.instagram || "@yunazzclotheshub").replace("@", "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-xl font-semibold text-primary hover:underline"
                 >
                   <SiInstagram className="mr-2 h-6 w-6" />
-                  {contactInfo?.instagram || '@yunazzclotheshub'}
+                  {contactInfo?.instagram || "@yunazzclotheshub"}
                 </a>
               </div>
             </div>

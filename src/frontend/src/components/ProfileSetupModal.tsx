@@ -1,31 +1,45 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useQueries';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import {
+  useGetCallerUserProfile,
+  useSaveCallerUserProfile,
+} from "../hooks/useQueries";
 
 export default function ProfileSetupModal() {
   const { identity } = useInternetIdentity();
   const isAuthenticated = !!identity;
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isFetched,
+  } = useGetCallerUserProfile();
   const saveProfile = useSaveCallerUserProfile();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
 
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup =
+    isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim() || !email.trim() || !phone.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -36,19 +50,24 @@ export default function ProfileSetupModal() {
         phone: phone.trim(),
         address: address.trim(),
       });
-      toast.success('Profile created successfully!');
+      toast.success("Profile created successfully!");
     } catch (error) {
-      toast.error('Failed to create profile');
+      toast.error("Failed to create profile");
       console.error(error);
     }
   };
 
   return (
     <Dialog open={showProfileSetup} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-[500px]"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Welcome to Yunazz Clothing!</DialogTitle>
-          <DialogDescription>Please complete your profile to continue shopping.</DialogDescription>
+          <DialogDescription>
+            Please complete your profile to continue shopping.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -99,8 +118,12 @@ export default function ProfileSetupModal() {
               rows={3}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={saveProfile.isPending}>
-            {saveProfile.isPending ? 'Creating Profile...' : 'Complete Profile'}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={saveProfile.isPending}
+          >
+            {saveProfile.isPending ? "Creating Profile..." : "Complete Profile"}
           </Button>
         </form>
       </DialogContent>

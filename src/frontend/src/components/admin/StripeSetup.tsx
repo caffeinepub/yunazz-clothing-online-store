@@ -1,23 +1,41 @@
-import { useState, useEffect } from 'react';
-import { useIsStripeConfigured, useSetStripeConfiguration } from '../../hooks/useQueries';
-import { useActor } from '../../hooks/useActor';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, Loader2, AlertTriangle, Info, CreditCard, Smartphone, Banknote } from 'lucide-react';
-import { toast } from 'sonner';
-import type { StripeConfiguration } from '../../backend';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  AlertTriangle,
+  Banknote,
+  CheckCircle,
+  CreditCard,
+  Info,
+  Loader2,
+  Smartphone,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import type { StripeConfiguration } from "../../backend";
+import { useActor } from "../../hooks/useActor";
+import {
+  useIsStripeConfigured,
+  useSetStripeConfiguration,
+} from "../../hooks/useQueries";
 
 export default function StripeSetup() {
   const { actor } = useActor();
   const { data: isConfigured = false, isLoading } = useIsStripeConfigured();
   const setStripeConfig = useSetStripeConfiguration();
 
-  const [secretKey, setSecretKey] = useState('');
-  const [countries, setCountries] = useState('IN');
-  const [currentConfig, setCurrentConfig] = useState<StripeConfiguration | null>(null);
+  const [secretKey, setSecretKey] = useState("");
+  const [countries, setCountries] = useState("IN");
+  const [currentConfig, setCurrentConfig] =
+    useState<StripeConfiguration | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(false);
 
   useEffect(() => {
@@ -27,9 +45,9 @@ export default function StripeSetup() {
         try {
           const config = await actor.getStripeConfiguration();
           setCurrentConfig(config);
-          setCountries(config.allowedCountries.join(','));
+          setCountries(config.allowedCountries.join(","));
         } catch (error) {
-          console.error('Error loading Stripe config:', error);
+          console.error("Error loading Stripe config:", error);
         } finally {
           setLoadingConfig(false);
         }
@@ -43,17 +61,17 @@ export default function StripeSetup() {
     e.preventDefault();
 
     if (!secretKey.trim()) {
-      toast.error('Please enter your Stripe secret key');
+      toast.error("Please enter your Stripe secret key");
       return;
     }
 
     const countryList = countries
-      .split(',')
+      .split(",")
       .map((c) => c.trim().toUpperCase())
       .filter((c) => c.length === 2);
 
     if (countryList.length === 0) {
-      toast.error('Please enter at least one valid country code');
+      toast.error("Please enter at least one valid country code");
       return;
     }
 
@@ -62,21 +80,21 @@ export default function StripeSetup() {
         secretKey: secretKey.trim(),
         allowedCountries: countryList,
       });
-      toast.success('Stripe configuration updated successfully');
-      setSecretKey('');
-      
+      toast.success("Stripe configuration updated successfully");
+      setSecretKey("");
+
       // Reload current config
       if (actor) {
         const config = await actor.getStripeConfiguration();
         setCurrentConfig(config);
       }
     } catch (error) {
-      toast.error('Failed to save Stripe configuration');
+      toast.error("Failed to save Stripe configuration");
       console.error(error);
     }
   };
 
-  const isTestKey = currentConfig?.secretKey.startsWith('sk_test');
+  const isTestKey = currentConfig?.secretKey.startsWith("sk_test");
 
   if (isLoading || loadingConfig) {
     return (
@@ -90,28 +108,40 @@ export default function StripeSetup() {
     <div className="space-y-6">
       {/* Current Status */}
       {isConfigured && currentConfig && (
-        <Alert className={isTestKey ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20' : 'border-green-500 bg-green-50 dark:bg-green-950/20'}>
+        <Alert
+          className={
+            isTestKey
+              ? "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+              : "border-green-500 bg-green-50 dark:bg-green-950/20"
+          }
+        >
           {isTestKey ? (
             <AlertTriangle className="h-4 w-4 text-amber-600" />
           ) : (
             <CheckCircle className="h-4 w-4 text-green-600" />
           )}
           <AlertTitle>
-            {isTestKey ? 'Test Mode Active' : 'Stripe Configured'}
+            {isTestKey ? "Test Mode Active" : "Stripe Configured"}
           </AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
               {isTestKey
-                ? 'Stripe is configured in test mode. All card payments will be processed as test transactions.'
-                : 'Stripe is configured and ready to accept live card payments.'}
+                ? "Stripe is configured in test mode. All card payments will be processed as test transactions."
+                : "Stripe is configured and ready to accept live card payments."}
             </p>
             <div className="text-sm space-y-1 mt-2">
               <p>
-                <strong>API Key:</strong> {currentConfig.secretKey.substring(0, 12)}...
-                {isTestKey && <span className="ml-2 text-amber-600 font-semibold">(TEST KEY)</span>}
+                <strong>API Key:</strong>{" "}
+                {currentConfig.secretKey.substring(0, 12)}...
+                {isTestKey && (
+                  <span className="ml-2 text-amber-600 font-semibold">
+                    (TEST KEY)
+                  </span>
+                )}
               </p>
               <p>
-                <strong>Allowed Countries:</strong> {currentConfig.allowedCountries.join(', ')}
+                <strong>Allowed Countries:</strong>{" "}
+                {currentConfig.allowedCountries.join(", ")}
               </p>
             </div>
           </AlertDescription>
@@ -122,7 +152,8 @@ export default function StripeSetup() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Stripe payment integration is not yet configured. Configure it below to enable credit/debit card payments.
+            Stripe payment integration is not yet configured. Configure it below
+            to enable credit/debit card payments.
           </AlertDescription>
         </Alert>
       )}
@@ -131,12 +162,14 @@ export default function StripeSetup() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {isConfigured ? 'Update Stripe Configuration' : 'Configure Stripe Payment'}
+            {isConfigured
+              ? "Update Stripe Configuration"
+              : "Configure Stripe Payment"}
           </CardTitle>
           <CardDescription>
             {isConfigured
-              ? 'Update your Stripe API key or allowed countries'
-              : 'Set up Stripe to accept credit and debit card payments'}
+              ? "Update your Stripe API key or allowed countries"
+              : "Set up Stripe to accept credit and debit card payments"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -150,12 +183,16 @@ export default function StripeSetup() {
                 type="password"
                 value={secretKey}
                 onChange={(e) => setSecretKey(e.target.value)}
-                placeholder={isConfigured ? 'Enter new key to update' : 'sk_test_... or sk_live_...'}
+                placeholder={
+                  isConfigured
+                    ? "Enter new key to update"
+                    : "sk_test_... or sk_live_..."
+                }
                 required
               />
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>
-                  Get your secret key from the{' '}
+                  Get your secret key from the{" "}
                   <a
                     href="https://dashboard.stripe.com/apikeys"
                     target="_blank"
@@ -186,13 +223,16 @@ export default function StripeSetup() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Comma-separated list of 2-letter ISO country codes (e.g., IN, US, GB, CA)
+                Comma-separated list of 2-letter ISO country codes (e.g., IN,
+                US, GB, CA)
               </p>
             </div>
 
             <Button type="submit" disabled={setStripeConfig.isPending}>
-              {setStripeConfig.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isConfigured ? 'Update Configuration' : 'Save Configuration'}
+              {setStripeConfig.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isConfigured ? "Update Configuration" : "Save Configuration"}
             </Button>
           </form>
         </CardContent>
@@ -202,7 +242,9 @@ export default function StripeSetup() {
       <Card>
         <CardHeader>
           <CardTitle>Available Payment Methods</CardTitle>
-          <CardDescription>All payment options available to your customers at checkout</CardDescription>
+          <CardDescription>
+            All payment options available to your customers at checkout
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-4">
@@ -211,7 +253,10 @@ export default function StripeSetup() {
               <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">UPI Payments</p>
-                <p className="text-sm text-muted-foreground">Always available - Google Pay, PhonePe, Paytm, and other UPI apps</p>
+                <p className="text-sm text-muted-foreground">
+                  Always available - Google Pay, PhonePe, Paytm, and other UPI
+                  apps
+                </p>
               </div>
             </li>
             <li className="flex items-start gap-3 p-3 rounded-lg border bg-card">
@@ -238,9 +283,9 @@ export default function StripeSetup() {
                 <p className="text-sm text-muted-foreground">
                   {isConfigured
                     ? isTestKey
-                      ? 'Active in test mode - use test card numbers for testing'
-                      : 'Active and ready for live payments'
-                    : 'Not configured - set up Stripe above to enable card payments'}
+                      ? "Active in test mode - use test card numbers for testing"
+                      : "Active and ready for live payments"
+                    : "Not configured - set up Stripe above to enable card payments"}
                 </p>
               </div>
             </li>
@@ -249,7 +294,9 @@ export default function StripeSetup() {
               <Banknote className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">Cash on Delivery</p>
-                <p className="text-sm text-muted-foreground">Always available - pay in cash when you receive your order</p>
+                <p className="text-sm text-muted-foreground">
+                  Always available - pay in cash when you receive your order
+                </p>
               </div>
             </li>
           </ul>
@@ -266,7 +313,9 @@ export default function StripeSetup() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p>Your Stripe integration is currently in test mode. This means:</p>
+            <p>
+              Your Stripe integration is currently in test mode. This means:
+            </p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-2">
               <li>No real money will be charged for card payments</li>
               <li>Use Stripe test card numbers (e.g., 4242 4242 4242 4242)</li>
@@ -275,7 +324,8 @@ export default function StripeSetup() {
               <li>UPI and Cash on Delivery work normally</li>
             </ul>
             <p className="text-amber-700 dark:text-amber-400 font-medium mt-3">
-              When ready for production, update the configuration above with your live API key (sk_live_...).
+              When ready for production, update the configuration above with
+              your live API key (sk_live_...).
             </p>
           </CardContent>
         </Card>

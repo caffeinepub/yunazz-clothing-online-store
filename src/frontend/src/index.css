@@ -3,99 +3,99 @@
 @tailwind utilities;
 
 @layer base {
-    :root {
-        --radius: 0.5rem;
-        
-        /* Light mode - Elegant clothing store palette */
-        --background: 0.99 0 0;
-        --foreground: 0.15 0 0;
-        
-        --card: 1 0 0;
-        --card-foreground: 0.15 0 0;
-        
-        --popover: 1 0 0;
-        --popover-foreground: 0.15 0 0;
-        
-        /* Primary: Sophisticated charcoal */
-        --primary: 0.25 0 0;
-        --primary-foreground: 0.99 0 0;
-        
-        /* Secondary: Warm beige */
-        --secondary: 0.95 0.01 60;
-        --secondary-foreground: 0.25 0 0;
-        
-        --muted: 0.96 0.005 60;
-        --muted-foreground: 0.45 0 0;
-        
-        /* Accent: Elegant gold */
-        --accent: 0.75 0.08 80;
-        --accent-foreground: 0.15 0 0;
-        
-        --destructive: 0.55 0.22 25;
-        --destructive-foreground: 0.99 0 0;
-        
-        --border: 0.92 0.005 60;
-        --input: 0.92 0.005 60;
-        --ring: 0.25 0 0;
-        
-        --chart-1: 0.65 0.15 250;
-        --chart-2: 0.70 0.12 180;
-        --chart-3: 0.60 0.10 140;
-        --chart-4: 0.75 0.08 80;
-        --chart-5: 0.55 0.18 30;
-    }
+  :root {
+    --radius: 0.5rem;
 
-    .dark {
-        --background: 0.12 0 0;
-        --foreground: 0.98 0 0;
-        
-        --card: 0.15 0 0;
-        --card-foreground: 0.98 0 0;
-        
-        --popover: 0.15 0 0;
-        --popover-foreground: 0.98 0 0;
-        
-        /* Primary: Light elegant tone */
-        --primary: 0.90 0.01 60;
-        --primary-foreground: 0.15 0 0;
-        
-        /* Secondary: Dark warm tone */
-        --secondary: 0.20 0.01 60;
-        --secondary-foreground: 0.98 0 0;
-        
-        --muted: 0.20 0.005 60;
-        --muted-foreground: 0.65 0 0;
-        
-        /* Accent: Muted gold */
-        --accent: 0.65 0.08 80;
-        --accent-foreground: 0.98 0 0;
-        
-        --destructive: 0.60 0.20 25;
-        --destructive-foreground: 0.98 0 0;
-        
-        --border: 0.25 0.005 60;
-        --input: 0.25 0.005 60;
-        --ring: 0.70 0.01 60;
-        
-        --chart-1: 0.60 0.18 260;
-        --chart-2: 0.65 0.15 180;
-        --chart-3: 0.70 0.12 140;
-        --chart-4: 0.65 0.08 80;
-        --chart-5: 0.60 0.20 30;
-    }
+    /* Light mode - Elegant clothing store palette */
+    --background: 0.99 0 0;
+    --foreground: 0.15 0 0;
 
-    * {
-        @apply border-border;
-    }
-    
-    body {
-        @apply bg-background text-foreground;
-        font-feature-settings: "rlig" 1, "calt" 1;
-    }
+    --card: 1 0 0;
+    --card-foreground: 0.15 0 0;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0 0;
+
+    /* Primary: Sophisticated charcoal */
+    --primary: 0.25 0 0;
+    --primary-foreground: 0.99 0 0;
+
+    /* Secondary: Warm beige */
+    --secondary: 0.95 0.01 60;
+    --secondary-foreground: 0.25 0 0;
+
+    --muted: 0.96 0.005 60;
+    --muted-foreground: 0.45 0 0;
+
+    /* Accent: Elegant gold */
+    --accent: 0.75 0.08 80;
+    --accent-foreground: 0.15 0 0;
+
+    --destructive: 0.55 0.22 25;
+    --destructive-foreground: 0.99 0 0;
+
+    --border: 0.92 0.005 60;
+    --input: 0.92 0.005 60;
+    --ring: 0.25 0 0;
+
+    --chart-1: 0.65 0.15 250;
+    --chart-2: 0.7 0.12 180;
+    --chart-3: 0.6 0.1 140;
+    --chart-4: 0.75 0.08 80;
+    --chart-5: 0.55 0.18 30;
+  }
+
+  .dark {
+    --background: 0.12 0 0;
+    --foreground: 0.98 0 0;
+
+    --card: 0.15 0 0;
+    --card-foreground: 0.98 0 0;
+
+    --popover: 0.15 0 0;
+    --popover-foreground: 0.98 0 0;
+
+    /* Primary: Light elegant tone */
+    --primary: 0.9 0.01 60;
+    --primary-foreground: 0.15 0 0;
+
+    /* Secondary: Dark warm tone */
+    --secondary: 0.2 0.01 60;
+    --secondary-foreground: 0.98 0 0;
+
+    --muted: 0.2 0.005 60;
+    --muted-foreground: 0.65 0 0;
+
+    /* Accent: Muted gold */
+    --accent: 0.65 0.08 80;
+    --accent-foreground: 0.98 0 0;
+
+    --destructive: 0.6 0.2 25;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.25 0.005 60;
+    --input: 0.25 0.005 60;
+    --ring: 0.7 0.01 60;
+
+    --chart-1: 0.6 0.18 260;
+    --chart-2: 0.65 0.15 180;
+    --chart-3: 0.7 0.12 140;
+    --chart-4: 0.65 0.08 80;
+    --chart-5: 0.6 0.2 30;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 @layer utilities {
-    .text-balance {
-        text-wrap: balance;
-    }
+  .text-balance {
+    text-wrap: balance;
+  }
 }

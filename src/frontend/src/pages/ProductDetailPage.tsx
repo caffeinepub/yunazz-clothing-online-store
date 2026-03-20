@@ -1,16 +1,22 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { useGetProductById } from '../hooks/useQueries';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
-import { toast } from 'sonner';
-import type { ProductSize } from '../backend';
-import CheckoutDialog from '../components/CheckoutDialog';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { ProductSize } from "../backend";
+import CheckoutDialog from "../components/CheckoutDialog";
+import { useGetProductById } from "../hooks/useQueries";
 
 export default function ProductDetailPage() {
-  const { productId } = useParams({ from: '/products/$productId' });
+  const { productId } = useParams({ from: "/products/$productId" });
   const navigate = useNavigate();
   const { data: product, isLoading } = useGetProductById(productId);
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null);
@@ -18,19 +24,19 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      toast.error('Please select a size');
+      toast.error("Please select a size");
       return;
     }
     setCheckoutOpen(true);
   };
 
   const getSizeLabel = (size: ProductSize): string => {
-    if ('Custom' in size) return size.Custom;
+    if ("Custom" in size) return size.Custom;
     return size.__kind__;
   };
 
   const getProductTypeLabel = (type: any): string => {
-    if ('Other' in type) return type.Other;
+    if ("Other" in type) return type.Other;
     return type.__kind__;
   };
 
@@ -56,7 +62,7 @@ export default function ProductDetailPage() {
     return (
       <div className="container py-16 text-center">
         <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-        <Button onClick={() => navigate({ to: '/products' })}>
+        <Button onClick={() => navigate({ to: "/products" })}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Products
         </Button>
@@ -66,7 +72,11 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container py-8">
-      <Button variant="ghost" onClick={() => navigate({ to: '/products' })} className="mb-6">
+      <Button
+        variant="ghost"
+        onClick={() => navigate({ to: "/products" })}
+        className="mb-6"
+      >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Products
       </Button>
@@ -78,11 +88,11 @@ export default function ProductDetailPage() {
             <Carousel className="w-full">
               <CarouselContent>
                 {product.images.map((image, index) => (
-                  <CarouselItem key={index}>
+                  <CarouselItem key={image.getDirectURL()}>
                     <div className="aspect-[3/4] rounded-lg overflow-hidden bg-muted">
                       <img
                         src={image.getDirectURL()}
-                        alt={`${product.name} - Image ${index + 1}`}
+                        alt={`${product.name} - ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -106,14 +116,20 @@ export default function ProductDetailPage() {
         {/* Product Details */}
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">{product.name}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+              {product.name}
+            </h1>
             <div className="flex items-center gap-3 mb-4">
-              <p className="text-3xl font-bold text-primary">₹{Number(product.price)}</p>
-              <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
-                {product.isAvailable ? 'In Stock' : 'Out of Stock'}
+              <p className="text-3xl font-bold text-primary">
+                ₹{Number(product.price)}
+              </p>
+              <Badge variant={product.isAvailable ? "default" : "secondary"}>
+                {product.isAvailable ? "In Stock" : "Out of Stock"}
               </Badge>
             </div>
-            <Badge variant="outline">{getProductTypeLabel(product.productType)}</Badge>
+            <Badge variant="outline">
+              {getProductTypeLabel(product.productType)}
+            </Badge>
           </div>
 
           <div className="prose prose-sm max-w-none">
@@ -122,15 +138,16 @@ export default function ProductDetailPage() {
 
           {/* Size Selection */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">Select Size</label>
+            <span className="text-sm font-medium">Select Size</span>
             <div className="flex flex-wrap gap-2">
-              {product.sizes.map((size, index) => {
+              {product.sizes.map((size) => {
                 const sizeLabel = getSizeLabel(size);
-                const isSelected = selectedSize && getSizeLabel(selectedSize) === sizeLabel;
+                const isSelected =
+                  selectedSize && getSizeLabel(selectedSize) === sizeLabel;
                 return (
                   <Button
-                    key={index}
-                    variant={isSelected ? 'default' : 'outline'}
+                    key={sizeLabel}
+                    variant={isSelected ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedSize(size)}
                     className="min-w-[60px]"
@@ -157,7 +174,7 @@ export default function ProductDetailPage() {
             disabled={!product.isAvailable || !selectedSize}
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {product.isAvailable ? 'Buy Now' : 'Out of Stock'}
+            {product.isAvailable ? "Buy Now" : "Out of Stock"}
           </Button>
         </div>
       </div>

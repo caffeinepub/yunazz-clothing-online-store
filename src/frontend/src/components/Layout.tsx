@@ -1,7 +1,7 @@
-import { Outlet } from '@tanstack/react-router';
-import Header from './Header';
-import Footer from './Footer';
-import ProfileSetupModal from './ProfileSetupModal';
+import { Outlet } from "@tanstack/react-router";
+import Footer from "./Footer";
+import Header from "./Header";
+import ProfileSetupModal from "./ProfileSetupModal";
 
 export default function Layout() {
   return (

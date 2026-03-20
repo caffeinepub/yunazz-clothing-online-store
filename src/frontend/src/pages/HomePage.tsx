@@ -1,8 +1,8 @@
-import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, ShoppingBag } from 'lucide-react';
-import { useGetAllProducts } from '../hooks/useQueries';
-import ProductCard from '../components/ProductCard';
+import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, ShoppingBag } from "lucide-react";
+import ProductCard from "../components/ProductCard";
+import { useGetAllProducts } from "../hooks/useQueries";
 
 export default function HomePage() {
   const { data: products = [], isLoading } = useGetAllProducts();
@@ -24,7 +24,8 @@ export default function HomePage() {
               Discover Your Style with Yunazz
             </h1>
             <p className="text-lg md:text-xl text-white/90">
-              Premium clothing collection for the modern wardrobe. Quality, comfort, and style in every piece.
+              Premium clothing collection for the modern wardrobe. Quality,
+              comfort, and style in every piece.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button asChild size="lg" className="text-base">
@@ -32,7 +33,12 @@ export default function HomePage() {
                   Shop Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="text-base bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="text-base bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              >
                 <Link to="/contact">Contact Us</Link>
               </Button>
             </div>
@@ -44,7 +50,9 @@ export default function HomePage() {
       <section className="py-16 md:py-24 bg-muted/30">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Featured Collection</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              Featured Collection
+            </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Explore our handpicked selection of premium clothing items
             </p>
@@ -52,8 +60,11 @@ export default function HomePage() {
 
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-card rounded-lg h-96 animate-pulse" />
+              {["s1", "s2", "s3", "s4"].map((sk) => (
+                <div
+                  key={sk}
+                  className="bg-card rounded-lg h-96 animate-pulse"
+                />
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
@@ -91,9 +102,13 @@ export default function HomePage() {
               />
             </div>
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Why Choose Yunazz?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Why Choose Yunazz?
+              </h2>
               <p className="text-lg text-muted-foreground">
-                At Yunazz Clothing, we believe in delivering quality fashion that speaks to your unique style. Our carefully curated collection combines comfort, elegance, and affordability.
+                At Yunazz Clothing, we believe in delivering quality fashion
+                that speaks to your unique style. Our carefully curated
+                collection combines comfort, elegance, and affordability.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start">
@@ -106,7 +121,10 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start">
                   <span className="mr-3 text-primary">✓</span>
-                  <span>Secure payment options including UPI, cards, and cash on delivery</span>
+                  <span>
+                    Secure payment options including UPI, cards, and cash on
+                    delivery
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-3 text-primary">✓</span>

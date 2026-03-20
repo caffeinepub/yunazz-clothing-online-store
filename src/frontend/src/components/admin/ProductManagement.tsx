@@ -1,11 +1,3 @@
-import { useState } from 'react';
-import { useGetAllProducts, useDeleteProduct } from '../../hooks/useQueries';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, ImageOff } from 'lucide-react';
-import ProductFormDialog from './ProductFormDialog';
-import { toast } from 'sonner';
-import type { Product } from '../../backend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +7,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageOff, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { Product } from "../../backend";
+import { useDeleteProduct, useGetAllProducts } from "../../hooks/useQueries";
+import ProductFormDialog from "./ProductFormDialog";
 
 export default function ProductManagement() {
   const { data: products = [], isLoading } = useGetAllProducts();
@@ -35,11 +35,11 @@ export default function ProductManagement() {
 
     try {
       await deleteProduct.mutateAsync(productToDelete);
-      toast.success('Product deleted successfully');
+      toast.success("Product deleted successfully");
       setDeleteDialogOpen(false);
       setProductToDelete(null);
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error("Failed to delete product");
       console.error(error);
     }
   };
@@ -50,7 +50,7 @@ export default function ProductManagement() {
   };
 
   const getProductTypeLabel = (type: any): string => {
-    if ('Other' in type) return type.Other;
+    if ("Other" in type) return type.Other;
     return type.__kind__;
   };
 
@@ -92,26 +92,44 @@ export default function ProductManagement() {
                   )}
                   <div>
                     <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">{getProductTypeLabel(product.productType)}</p>
-                    <p className="text-sm font-semibold text-primary mt-1">₹{Number(product.price)}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {getProductTypeLabel(product.productType)}
+                    </p>
+                    <p className="text-sm font-semibold text-primary mt-1">
+                      ₹{Number(product.price)}
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(product)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => confirmDelete(product.id)}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => confirmDelete(product.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {product.description}
+              </p>
               <div className="mt-2 flex gap-2 text-xs">
-                <span className="px-2 py-1 bg-muted rounded">Stock: {Number(product.stockCount)}</span>
-                <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {product.isAvailable ? 'Available' : 'Out of Stock'}
+                <span className="px-2 py-1 bg-muted rounded">
+                  Stock: {Number(product.stockCount)}
+                </span>
+                <span
+                  className={`px-2 py-1 rounded ${product.isAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                >
+                  {product.isAvailable ? "Available" : "Out of Stock"}
                 </span>
               </div>
             </CardContent>
@@ -134,12 +152,16 @@ export default function ProductManagement() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the product.
+              This action cannot be undone. This will permanently delete the
+              product.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

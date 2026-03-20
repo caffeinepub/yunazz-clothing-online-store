@@ -1,48 +1,64 @@
-import { useState } from 'react';
-import { useGetFilteredProducts } from '../hooks/useQueries';
-import ProductCard from '../components/ProductCard';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Filter, Search, ShoppingBag } from 'lucide-react';
-import type { ProductFilter, ProductType, ProductSize } from '../backend';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Slider } from "@/components/ui/slider";
+import { Filter, Search, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import type { ProductFilter, ProductSize, ProductType } from "../backend";
+import ProductCard from "../components/ProductCard";
+import { useGetFilteredProducts } from "../hooks/useQueries";
 
-const productTypes: { value: ProductType['__kind__']; label: string }[] = [
-  { value: 'Shirt', label: 'Shirts' },
-  { value: 'TShirt', label: 'T-Shirts' },
-  { value: 'Pant', label: 'Pants' },
-  { value: 'Jeans', label: 'Jeans' },
-  { value: 'Dress', label: 'Dresses' },
-  { value: 'Jacket', label: 'Jackets' },
-  { value: 'Sweater', label: 'Sweaters' },
-  { value: 'Blazer', label: 'Blazers' },
-  { value: 'Shorts', label: 'Shorts' },
-  { value: 'Skirt', label: 'Skirts' },
-  { value: 'Suit', label: 'Suits' },
+const productTypes: { value: ProductType["__kind__"]; label: string }[] = [
+  { value: "Shirt", label: "Shirts" },
+  { value: "TShirt", label: "T-Shirts" },
+  { value: "Pant", label: "Pants" },
+  { value: "Jeans", label: "Jeans" },
+  { value: "Dress", label: "Dresses" },
+  { value: "Jacket", label: "Jackets" },
+  { value: "Sweater", label: "Sweaters" },
+  { value: "Blazer", label: "Blazers" },
+  { value: "Shorts", label: "Shorts" },
+  { value: "Skirt", label: "Skirts" },
+  { value: "Suit", label: "Suits" },
 ];
 
-const sizes: { value: ProductSize['__kind__']; label: string }[] = [
-  { value: 'XS', label: 'XS' },
-  { value: 'S', label: 'S' },
-  { value: 'M', label: 'M' },
-  { value: 'L', label: 'L' },
-  { value: 'XL', label: 'XL' },
-  { value: 'XXL', label: 'XXL' },
+const sizes: { value: ProductSize["__kind__"]; label: string }[] = [
+  { value: "XS", label: "XS" },
+  { value: "S", label: "S" },
+  { value: "M", label: "M" },
+  { value: "L", label: "L" },
+  { value: "XL", label: "XL" },
+  { value: "XXL", label: "XXL" },
 ];
 
 export default function ProductsPage() {
-  const [searchText, setSearchText] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [searchText, setSearchText] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
   const [priceRange, setPriceRange] = useState<[number]>([10000]);
 
   const filter: ProductFilter = {
     searchText: searchText || undefined,
-    productType: selectedType ? ({ __kind__: selectedType } as ProductType) : undefined,
-    size: selectedSize ? ({ __kind__: selectedSize } as ProductSize) : undefined,
+    productType: selectedType
+      ? ({ __kind__: selectedType } as ProductType)
+      : undefined,
+    size: selectedSize
+      ? ({ __kind__: selectedSize } as ProductSize)
+      : undefined,
     maxPrice: BigInt(priceRange[0]),
     isAvailable: true,
   };
@@ -114,9 +130,9 @@ export default function ProductsPage() {
         variant="outline"
         className="w-full"
         onClick={() => {
-          setSearchText('');
-          setSelectedType('');
-          setSelectedSize('');
+          setSearchText("");
+          setSelectedType("");
+          setSelectedSize("");
           setPriceRange([10000]);
         }}
       >
@@ -128,8 +144,12 @@ export default function ProductsPage() {
   return (
     <div className="container py-8">
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Our Collection</h1>
-        <p className="text-muted-foreground">Browse our complete range of premium clothing</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+          Our Collection
+        </h1>
+        <p className="text-muted-foreground">
+          Browse our complete range of premium clothing
+        </p>
       </div>
 
       <div className="flex gap-8">
@@ -167,13 +187,16 @@ export default function ProductsPage() {
         {/* Products Grid */}
         <div className="flex-1">
           <div className="mb-4 text-sm text-muted-foreground">
-            {isLoading ? 'Loading...' : `${products.length} products found`}
+            {isLoading ? "Loading..." : `${products.length} products found`}
           </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-card rounded-lg h-96 animate-pulse" />
+              {["s1", "s2", "s3", "s4", "s5", "s6"].map((sk) => (
+                <div
+                  key={sk}
+                  className="bg-card rounded-lg h-96 animate-pulse"
+                />
               ))}
             </div>
           ) : products.length > 0 ? (
@@ -186,13 +209,15 @@ export default function ProductsPage() {
             <div className="text-center py-16">
               <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No products found</h3>
-              <p className="text-muted-foreground mb-6">Try adjusting your filters</p>
+              <p className="text-muted-foreground mb-6">
+                Try adjusting your filters
+              </p>
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSearchText('');
-                  setSelectedType('');
-                  setSelectedSize('');
+                  setSearchText("");
+                  setSelectedType("");
+                  setSelectedSize("");
                   setPriceRange([10000]);
                 }}
               >

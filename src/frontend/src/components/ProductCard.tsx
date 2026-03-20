@@ -1,7 +1,7 @@
-import { Link } from '@tanstack/react-router';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { Product } from '../backend';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import type { Product } from "../backend";
 
 interface ProductCardProps {
   product: Product;
@@ -9,7 +9,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const getProductTypeLabel = (type: any): string => {
-    if ('Other' in type) return type.Other;
+    if ("Other" in type) return type.Other;
     return type.__kind__;
   };
 
@@ -35,13 +35,19 @@ export default function ProductCard({ product }: ProductCardProps) {
               {getProductTypeLabel(product.productType)}
             </Badge>
           </div>
-          <h3 className="font-semibold text-lg mb-1 line-clamp-1">{product.name}</h3>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{product.description}</p>
+          <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+            {product.name}
+          </h3>
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+            {product.description}
+          </p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex items-center justify-between">
-          <span className="text-xl font-bold text-primary">₹{Number(product.price)}</span>
-          <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
-            {product.isAvailable ? 'In Stock' : 'Out of Stock'}
+          <span className="text-xl font-bold text-primary">
+            ₹{Number(product.price)}
+          </span>
+          <Badge variant={product.isAvailable ? "default" : "secondary"}>
+            {product.isAvailable ? "In Stock" : "Out of Stock"}
           </Badge>
         </CardFooter>
       </Card>
