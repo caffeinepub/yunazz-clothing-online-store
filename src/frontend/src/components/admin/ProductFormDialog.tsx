@@ -27,6 +27,54 @@ import {
   useUpdateProductImages,
 } from "../../hooks/useQueries";
 
+function toProductType(kind: string): ProductType {
+  switch (kind) {
+    case "Shirt":
+      return { __kind__: "Shirt", Shirt: null };
+    case "Skirt":
+      return { __kind__: "Skirt", Skirt: null };
+    case "Pant":
+      return { __kind__: "Pant", Pant: null };
+    case "Suit":
+      return { __kind__: "Suit", Suit: null };
+    case "Shorts":
+      return { __kind__: "Shorts", Shorts: null };
+    case "Dress":
+      return { __kind__: "Dress", Dress: null };
+    case "Sweater":
+      return { __kind__: "Sweater", Sweater: null };
+    case "TShirt":
+      return { __kind__: "TShirt", TShirt: null };
+    case "Jacket":
+      return { __kind__: "Jacket", Jacket: null };
+    case "Blazer":
+      return { __kind__: "Blazer", Blazer: null };
+    case "Jeans":
+      return { __kind__: "Jeans", Jeans: null };
+    default:
+      return { __kind__: "Other", Other: kind };
+  }
+}
+
+function toProductSize(kind: string): ProductSize {
+  switch (kind) {
+    case "XS":
+      return { __kind__: "XS", XS: null };
+    case "S":
+      return { __kind__: "S", S: null };
+    case "M":
+      return { __kind__: "M", M: null };
+    case "L":
+      return { __kind__: "L", L: null };
+    case "XL":
+      return { __kind__: "XL", XL: null };
+    case "XXL":
+      return { __kind__: "XXL", XXL: null };
+    default:
+      return { __kind__: "Custom", Custom: kind };
+  }
+}
+
 interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -95,7 +143,9 @@ export default function ProductFormDialog({
       setPrice(Number(product.price).toString());
       setStockCount(Number(product.stockCount).toString());
       setProductType(
-        "Other" in product.productType ? "Shirt" : product.productType.__kind__,
+        "Other" in product.productType
+          ? (product.productType.Other ?? "Shirt")
+          : product.productType.__kind__,
       );
       setSelectedSizes(
         product.sizes.map((s) => ("Custom" in s ? "M" : s.__kind__)),
@@ -196,8 +246,8 @@ export default function ProductFormDialog({
       description: description.trim(),
       price: BigInt(Math.round(Number.parseFloat(price))),
       stockCount: BigInt(Number.parseInt(stockCount)),
-      productType: { __kind__: productType } as ProductType,
-      sizes: selectedSizes.map((s) => ({ __kind__: s }) as ProductSize),
+      productType: toProductType(productType),
+      sizes: selectedSizes.map(toProductSize),
       isAvailable,
       images,
     };
