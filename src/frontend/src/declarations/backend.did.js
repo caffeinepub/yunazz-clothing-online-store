@@ -66,6 +66,28 @@ export const ShoppingItem = IDL.Record({
   'priceInCents' : IDL.Nat,
   'productDescription' : IDL.Text,
 });
+export const OrderStatus = IDL.Variant({
+  'shipped' : IDL.Null,
+  'cancelled' : IDL.Null,
+  'pending' : IDL.Null,
+  'delivered' : IDL.Null,
+  'confirmed' : IDL.Null,
+});
+export const PaymentMethod = IDL.Variant({
+  'upi' : IDL.Null,
+  'cashOnDelivery' : IDL.Null,
+  'card' : IDL.Null,
+});
+export const OrderRecord = IDL.Record({
+  'id' : IDL.Text,
+  'status' : OrderStatus,
+  'deliveryAddress' : IDL.Text,
+  'paymentMethod' : PaymentMethod,
+  'user' : IDL.Principal,
+  'totalAmount' : IDL.Nat,
+  'timestamp' : IDL.Int,
+  'products' : IDL.Vec(Product),
+});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -85,27 +107,6 @@ export const ProductFilter = IDL.Record({
   'maxPrice' : IDL.Opt(IDL.Nat),
   'searchText' : IDL.Opt(IDL.Text),
   'minPrice' : IDL.Opt(IDL.Nat),
-});
-export const OrderStatus = IDL.Variant({
-  'shipped' : IDL.Null,
-  'cancelled' : IDL.Null,
-  'pending' : IDL.Null,
-  'delivered' : IDL.Null,
-  'confirmed' : IDL.Null,
-});
-export const PaymentMethod = IDL.Variant({
-  'upi' : IDL.Null,
-  'cashOnDelivery' : IDL.Null,
-  'card' : IDL.Null,
-});
-export const OrderRecord = IDL.Record({
-  'id' : IDL.Text,
-  'status' : OrderStatus,
-  'paymentMethod' : PaymentMethod,
-  'user' : IDL.Principal,
-  'totalAmount' : IDL.Nat,
-  'timestamp' : IDL.Int,
-  'products' : IDL.Vec(Product),
 });
 export const StripeConfiguration = IDL.Record({
   'allowedCountries' : IDL.Vec(IDL.Text),
@@ -172,6 +173,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteProduct' : IDL.Func([IDL.Text], [], []),
+  'getAllOrders' : IDL.Func([], [IDL.Vec(OrderRecord)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -274,6 +276,28 @@ export const idlFactory = ({ IDL }) => {
     'priceInCents' : IDL.Nat,
     'productDescription' : IDL.Text,
   });
+  const OrderStatus = IDL.Variant({
+    'shipped' : IDL.Null,
+    'cancelled' : IDL.Null,
+    'pending' : IDL.Null,
+    'delivered' : IDL.Null,
+    'confirmed' : IDL.Null,
+  });
+  const PaymentMethod = IDL.Variant({
+    'upi' : IDL.Null,
+    'cashOnDelivery' : IDL.Null,
+    'card' : IDL.Null,
+  });
+  const OrderRecord = IDL.Record({
+    'id' : IDL.Text,
+    'status' : OrderStatus,
+    'deliveryAddress' : IDL.Text,
+    'paymentMethod' : PaymentMethod,
+    'user' : IDL.Principal,
+    'totalAmount' : IDL.Nat,
+    'timestamp' : IDL.Int,
+    'products' : IDL.Vec(Product),
+  });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
@@ -293,27 +317,6 @@ export const idlFactory = ({ IDL }) => {
     'maxPrice' : IDL.Opt(IDL.Nat),
     'searchText' : IDL.Opt(IDL.Text),
     'minPrice' : IDL.Opt(IDL.Nat),
-  });
-  const OrderStatus = IDL.Variant({
-    'shipped' : IDL.Null,
-    'cancelled' : IDL.Null,
-    'pending' : IDL.Null,
-    'delivered' : IDL.Null,
-    'confirmed' : IDL.Null,
-  });
-  const PaymentMethod = IDL.Variant({
-    'upi' : IDL.Null,
-    'cashOnDelivery' : IDL.Null,
-    'card' : IDL.Null,
-  });
-  const OrderRecord = IDL.Record({
-    'id' : IDL.Text,
-    'status' : OrderStatus,
-    'paymentMethod' : PaymentMethod,
-    'user' : IDL.Principal,
-    'totalAmount' : IDL.Nat,
-    'timestamp' : IDL.Int,
-    'products' : IDL.Vec(Product),
   });
   const StripeConfiguration = IDL.Record({
     'allowedCountries' : IDL.Vec(IDL.Text),
@@ -377,6 +380,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteProduct' : IDL.Func([IDL.Text], [], []),
+    'getAllOrders' : IDL.Func([], [IDL.Vec(OrderRecord)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),

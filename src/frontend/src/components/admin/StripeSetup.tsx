@@ -11,12 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   AlertTriangle,
+  ArrowRight,
   Banknote,
   CheckCircle,
   CreditCard,
-  Info,
+  ExternalLink,
+  Key,
   Loader2,
+  PartyPopper,
   Smartphone,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,6 +41,7 @@ export default function StripeSetup() {
   const [currentConfig, setCurrentConfig] =
     useState<StripeConfiguration | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     const loadCurrentConfig = async () => {
@@ -82,8 +87,8 @@ export default function StripeSetup() {
       });
       toast.success("Stripe configuration updated successfully");
       setSecretKey("");
+      setJustSaved(true);
 
-      // Reload current config
       if (actor) {
         const config = await actor.getStripeConfiguration();
         setCurrentConfig(config);
@@ -105,9 +110,34 @@ export default function StripeSetup() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Current Status */}
-      {isConfigured && currentConfig && (
+    <div className="space-y-6 max-w-2xl">
+      {/* 🎉 Big success banner after saving */}
+      {justSaved && (
+        <div
+          data-ocid="stripe.success_state"
+          className="rounded-2xl border-2 border-green-500 bg-green-50 dark:bg-green-950/30 p-6 flex flex-col items-center text-center gap-3"
+        >
+          <PartyPopper className="h-12 w-12 text-green-600" />
+          <h2 className="text-2xl font-bold text-green-700 dark:text-green-400">
+            Stripe is Ready! 🎉
+          </h2>
+          <p className="text-green-700 dark:text-green-300 text-base">
+            Your customers can now pay by <strong>Card</strong> and{" "}
+            <strong>UPI</strong> at checkout.
+          </p>
+          <Button
+            variant="outline"
+            className="border-green-500 text-green-700 hover:bg-green-100 mt-1"
+            onClick={() => setJustSaved(false)}
+            data-ocid="stripe.close_button"
+          >
+            Got it!
+          </Button>
+        </div>
+      )}
+
+      {/* Current Status Banner */}
+      {isConfigured && currentConfig && !justSaved && (
         <Alert
           className={
             isTestKey
@@ -120,63 +150,172 @@ export default function StripeSetup() {
           ) : (
             <CheckCircle className="h-4 w-4 text-green-600" />
           )}
-          <AlertTitle>
-            {isTestKey ? "Test Mode Active" : "Stripe Configured"}
+          <AlertTitle className="font-bold">
+            {isTestKey ? "⚠️ Test Mode Active" : "✅ Stripe is Working!"}
           </AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
               {isTestKey
-                ? "Stripe is configured in test mode. All card payments will be processed as test transactions."
-                : "Stripe is configured and ready to accept live card payments."}
+                ? "You are in test mode. No real money is being charged. Switch to a live key when ready."
+                : "Stripe is set up and your customers can pay by card and UPI right now."}
             </p>
-            <div className="text-sm space-y-1 mt-2">
-              <p>
-                <strong>API Key:</strong>{" "}
-                {currentConfig.secretKey.substring(0, 12)}...
-                {isTestKey && (
-                  <span className="ml-2 text-amber-600 font-semibold">
-                    (TEST KEY)
-                  </span>
-                )}
-              </p>
-              <p>
-                <strong>Allowed Countries:</strong>{" "}
-                {currentConfig.allowedCountries.join(", ")}
-              </p>
-            </div>
+            <p className="text-sm">
+              <strong>Key in use:</strong>{" "}
+              {currentConfig.secretKey.substring(0, 12)}...
+              {isTestKey ? " (TEST)" : " (LIVE)"}
+            </p>
           </AlertDescription>
         </Alert>
       )}
 
+      {/* STEP 1 — Create Account */}
       {!isConfigured && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            Stripe payment integration is not yet configured. Configure it below
-            to enable credit/debit card payments.
-          </AlertDescription>
-        </Alert>
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground text-lg font-bold flex-shrink-0">
+                1
+              </span>
+              <div>
+                <CardTitle className="text-lg">
+                  Create Your Stripe Account (Free)
+                </CardTitle>
+                <CardDescription>
+                  You need a Stripe account to accept online payments
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <a
+              href="https://dashboard.stripe.com/register"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ocid="stripe.open_modal_button"
+            >
+              <Button
+                size="lg"
+                className="w-full sm:w-auto text-base font-semibold gap-2"
+              >
+                <UserPlus className="h-5 w-5" />
+                Create Free Stripe Account
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </a>
+            <p className="text-sm text-muted-foreground mt-3">
+              Already have an account?{" "}
+              <a
+                href="https://dashboard.stripe.com/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                Log in here
+              </a>
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Configuration Form */}
-      <Card>
+      {/* Visual flow arrow — only for first-time setup */}
+      {!isConfigured && (
+        <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground px-2">
+          {[
+            { icon: UserPlus, label: "Create Account" },
+            { icon: Key, label: "Get API Key" },
+            { icon: CreditCard, label: "Paste Here" },
+            { icon: CheckCircle, label: "Done!" },
+          ].map((step, i, arr) => (
+            <div key={step.label} className="flex items-center gap-2">
+              <div className="flex flex-col items-center gap-1">
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <step.icon className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-xs font-medium">{step.label}</span>
+              </div>
+              {i < arr.length - 1 && (
+                <ArrowRight className="h-4 w-4 text-muted-foreground mb-4" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* STEP 2 — Get Key (only for first-time) */}
+      {!isConfigured && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground text-lg font-bold flex-shrink-0">
+                2
+              </span>
+              <div>
+                <CardTitle className="text-lg">
+                  Copy Your Secret Key from Stripe
+                </CardTitle>
+                <CardDescription>
+                  You need to get your key from the Stripe website
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ol className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex gap-2">→ Log in to your Stripe account</li>
+              <li className="flex gap-2">
+                → Go to <strong>Developers → API Keys</strong>
+              </li>
+              <li className="flex gap-2">
+                → Click <strong>"Reveal"</strong> next to the Secret Key
+              </li>
+              <li className="flex gap-2">
+                → Copy it (starts with{" "}
+                <code className="bg-muted px-1 rounded">sk_test_</code> or{" "}
+                <code className="bg-muted px-1 rounded">sk_live_</code>)
+              </li>
+            </ol>
+            <a
+              href="https://dashboard.stripe.com/apikeys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary underline font-medium"
+            >
+              Open Stripe API Keys page <ExternalLink className="h-3 w-3" />
+            </a>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP 3 / Main Setup Card — Paste Key */}
+      <Card className="border-2 border-primary/30 shadow-md">
         <CardHeader>
-          <CardTitle>
-            {isConfigured
-              ? "Update Stripe Configuration"
-              : "Configure Stripe Payment"}
-          </CardTitle>
-          <CardDescription>
-            {isConfigured
-              ? "Update your Stripe API key or allowed countries"
-              : "Set up Stripe to accept credit and debit card payments"}
-          </CardDescription>
+          <div className="flex items-center gap-3">
+            {!isConfigured && (
+              <span className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground text-lg font-bold flex-shrink-0">
+                3
+              </span>
+            )}
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <CreditCard className="h-5 w-5 text-primary" />
+                {isConfigured
+                  ? "Update Your Stripe Key"
+                  : "Paste Your Stripe Key Here"}
+              </CardTitle>
+              <CardDescription>
+                {isConfigured
+                  ? "Enter a new key below to update your Stripe settings."
+                  : "Paste the key you copied from Stripe and click Save."}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="secretKey">
-                Stripe Secret Key <span className="text-destructive">*</span>
+              <Label htmlFor="secretKey" className="text-base font-semibold">
+                Your Stripe Secret Key{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="secretKey"
@@ -185,54 +324,67 @@ export default function StripeSetup() {
                 onChange={(e) => setSecretKey(e.target.value)}
                 placeholder={
                   isConfigured
-                    ? "Enter new key to update"
-                    : "sk_test_... or sk_live_..."
+                    ? "Enter new key to update (sk_test_... or sk_live_...)"
+                    : "Paste your key here (sk_test_... or sk_live_...)"
                 }
+                className="h-14 text-base"
                 required
+                data-ocid="stripe.input"
               />
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>
-                  Get your secret key from the{" "}
-                  <a
-                    href="https://dashboard.stripe.com/apikeys"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-primary"
-                  >
-                    Stripe Dashboard
-                  </a>
+              <div className="rounded-lg bg-muted/60 border p-3 space-y-1 text-sm">
+                <p className="font-semibold text-foreground">
+                  What key should I use?
                 </p>
-                <p className="text-amber-600 dark:text-amber-500">
-                  • Use <strong>sk_test_...</strong> keys for testing
+                <p className="text-amber-600 dark:text-amber-400">
+                  🔶 <strong>sk_test_...</strong> = Testing mode (no real money
+                  charged — use this first)
                 </p>
-                <p className="text-green-600 dark:text-green-500">
-                  • Use <strong>sk_live_...</strong> keys for production
+                <p className="text-green-600 dark:text-green-400">
+                  ✅ <strong>sk_live_...</strong> = Real money mode (use this
+                  when you are ready)
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="countries">
-                Allowed Countries <span className="text-destructive">*</span>
+              <Label htmlFor="countries" className="text-base font-semibold">
+                Your Country Code <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="countries"
                 value={countries}
                 onChange={(e) => setCountries(e.target.value)}
-                placeholder="IN,US,GB,CA"
+                placeholder="IN"
+                className="h-11 max-w-xs text-base"
                 required
+                data-ocid="stripe.select"
               />
-              <p className="text-xs text-muted-foreground">
-                Comma-separated list of 2-letter ISO country codes (e.g., IN,
-                US, GB, CA)
+              <p className="text-sm text-muted-foreground">
+                For India, keep it as <strong>IN</strong>. For multiple
+                countries: IN,US,GB
               </p>
             </div>
 
-            <Button type="submit" disabled={setStripeConfig.isPending}>
-              {setStripeConfig.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full text-base font-bold py-6"
+              disabled={setStripeConfig.isPending}
+              data-ocid="stripe.submit_button"
+            >
+              {setStripeConfig.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  {isConfigured
+                    ? "Update Stripe Key"
+                    : "Save & Activate Card Payments"}
+                </>
               )}
-              {isConfigured ? "Update Configuration" : "Save Configuration"}
             </Button>
           </form>
         </CardContent>
@@ -241,25 +393,24 @@ export default function StripeSetup() {
       {/* Payment Methods Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Available Payment Methods</CardTitle>
+          <CardTitle>How Customers Can Pay</CardTitle>
           <CardDescription>
-            All payment options available to your customers at checkout
+            All payment options available at checkout
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-4">
-            <li className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3 p-3 rounded-xl border bg-card">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
               <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium">UPI Payments</p>
+                <p className="font-semibold">UPI Payments</p>
                 <p className="text-sm text-muted-foreground">
-                  Always available - Google Pay, PhonePe, Paytm, and other UPI
-                  apps
+                  Always active — Google Pay, PhonePe, Paytm, and all UPI apps
                 </p>
               </div>
             </li>
-            <li className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+            <li className="flex items-start gap-3 p-3 rounded-xl border bg-card">
               {isConfigured ? (
                 <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
               ) : (
@@ -267,8 +418,8 @@ export default function StripeSetup() {
               )}
               <CreditCard className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium">
-                  Credit/Debit Cards via Stripe
+                <p className="font-semibold">
+                  Credit / Debit Cards via Stripe
                   {isConfigured && isTestKey && (
                     <span className="ml-2 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
                       TEST MODE
@@ -283,19 +434,19 @@ export default function StripeSetup() {
                 <p className="text-sm text-muted-foreground">
                   {isConfigured
                     ? isTestKey
-                      ? "Active in test mode - use test card numbers for testing"
-                      : "Active and ready for live payments"
-                    : "Not configured - set up Stripe above to enable card payments"}
+                      ? "Active in test mode. Test card: 4242 4242 4242 4242"
+                      : "Active and accepting real payments"
+                    : "Set up Stripe above to enable this"}
                 </p>
               </div>
             </li>
-            <li className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+            <li className="flex items-start gap-3 p-3 rounded-xl border bg-card">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
               <Banknote className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium">Cash on Delivery</p>
+                <p className="font-semibold">Cash on Delivery (COD)</p>
                 <p className="text-sm text-muted-foreground">
-                  Always available - pay in cash when you receive your order
+                  Always active — customer pays cash when the parcel arrives
                 </p>
               </div>
             </li>
@@ -303,29 +454,31 @@ export default function StripeSetup() {
         </CardContent>
       </Card>
 
-      {/* Test Mode Information */}
+      {/* Test Mode Info */}
       {isConfigured && isTestKey && (
         <Card className="border-amber-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
-              Test Mode Information
+              You are in Test Mode — No Real Money
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p>
-              Your Stripe integration is currently in test mode. This means:
+              Your Stripe is in <strong>test mode</strong>. This means:
             </p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-2">
-              <li>No real money will be charged for card payments</li>
-              <li>Use Stripe test card numbers (e.g., 4242 4242 4242 4242)</li>
-              <li>Transactions appear in your Stripe test dashboard</li>
-              <li>Perfect for testing your checkout flow</li>
-              <li>UPI and Cash on Delivery work normally</li>
+              <li>No real money is charged to anyone</li>
+              <li>
+                Test card: <strong>4242 4242 4242 4242</strong>, any future
+                date, any 3 digits for CVV
+              </li>
+              <li>Test transactions appear in your Stripe test dashboard</li>
+              <li>UPI and COD still work normally</li>
             </ul>
-            <p className="text-amber-700 dark:text-amber-400 font-medium mt-3">
-              When ready for production, update the configuration above with
-              your live API key (sk_live_...).
+            <p className="text-amber-700 dark:text-amber-400 font-medium">
+              When ready for real payments, paste your{" "}
+              <strong>sk_live_...</strong> key above.
             </p>
           </CardContent>
         </Card>

@@ -9,16 +9,26 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, Settings, ShieldAlert, ShieldCheck } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  Settings,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import ContactInfoManagement from "../components/admin/ContactInfoManagement";
+import OrdersManagement from "../components/admin/OrdersManagement";
 import ProductManagement from "../components/admin/ProductManagement";
 import StripeSetup from "../components/admin/StripeSetup";
 import { useActor } from "../hooks/useActor";
 import {
+  useGetAllOrders,
   useGetAllProducts,
   useGetCallerUserRole,
   useInitializeAccessControl,
+  useIsStripeConfigured,
 } from "../hooks/useQueries";
 
 export default function AdminDashboard() {
@@ -30,7 +40,10 @@ export default function AdminDashboard() {
     isPending: rolePending,
   } = useGetCallerUserRole();
   const { data: products = [] } = useGetAllProducts();
+  const { data: orders = [] } = useGetAllOrders();
+  const { data: isStripeConfigured = false } = useIsStripeConfigured();
   const initializeAccessControl = useInitializeAccessControl();
+  const [activeTab, setActiveTab] = useState("products");
 
   const handleActivateAdmin = async () => {
     try {
@@ -124,17 +137,61 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
-      <Tabs defaultValue="products" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
-          <TabsTrigger value="products">
+      {/* Stripe setup notice */}
+      {!isStripeConfigured && (
+        <Alert className="mb-6 border-amber-400 bg-amber-50 dark:bg-amber-950/20">
+          <CreditCard className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-amber-800 dark:text-amber-300 font-medium">
+              Card payments are not set up yet. Go to the Payments tab to add
+              your Stripe key and start accepting card payments.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-amber-500 text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/30 shrink-0"
+              onClick={() => setActiveTab("payments")}
+              data-ocid="admin.setup_payments_button"
+            >
+              Set Up Payments
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+          <TabsTrigger value="products" data-ocid="admin.products.tab">
             Products ({products.length})
           </TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="contact">Contact Info</TabsTrigger>
+          <TabsTrigger value="orders" data-ocid="admin.orders.tab">
+            Orders ({orders.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="payments"
+            data-ocid="admin.payments.tab"
+            className="relative"
+          >
+            Payments
+            {!isStripeConfigured && (
+              <span className="ml-1.5 inline-flex h-2 w-2 rounded-full bg-orange-500" />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="contact" data-ocid="admin.contact.tab">
+            Contact Info
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="space-y-6">
           <ProductManagement />
+        </TabsContent>
+
+        <TabsContent value="orders" className="space-y-6">
+          <OrdersManagement />
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-6">

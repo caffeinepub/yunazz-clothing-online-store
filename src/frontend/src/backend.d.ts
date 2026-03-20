@@ -70,6 +70,7 @@ export type ProductType = {
 export interface OrderRecord {
     id: string;
     status: OrderStatus;
+    deliveryAddress: string;
     paymentMethod: PaymentMethod;
     user: Principal;
     totalAmount: bigint;
@@ -176,6 +177,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
     deleteProduct(id: string): Promise<void>;
+    getAllOrders(): Promise<Array<OrderRecord>>;
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ContactInfo,
   OrderRecord,
+  OrderStatus,
   Product,
   ProductFilter,
   ShoppingItem,
@@ -307,6 +308,7 @@ export function usePlaceOrder() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["allOrders"] });
     },
   });
 }
@@ -321,5 +323,33 @@ export function useGetOrdersByUser(user: Principal | undefined) {
       return actor.getOrdersByUser(user);
     },
     enabled: !!actor && !isFetching && !!user,
+  });
+}
+
+export function useGetAllOrders() {
+  const { actor, isFetching } = useActor();
+  return useQuery<OrderRecord[]>({
+    queryKey: ["allOrders"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllOrders();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateOrderStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: OrderStatus }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateOrderStatus(id, status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
   });
 }

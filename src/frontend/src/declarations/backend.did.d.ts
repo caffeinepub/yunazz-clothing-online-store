@@ -20,6 +20,7 @@ export type ExternalBlob = Uint8Array;
 export interface OrderRecord {
   'id' : string,
   'status' : OrderStatus,
+  'deliveryAddress' : string,
   'paymentMethod' : PaymentMethod,
   'user' : Principal,
   'totalAmount' : bigint,
@@ -145,6 +146,7 @@ export interface _SERVICE {
     string
   >,
   'deleteProduct' : ActorMethod<[string], undefined>,
+  'getAllOrders' : ActorMethod<[], Array<OrderRecord>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,

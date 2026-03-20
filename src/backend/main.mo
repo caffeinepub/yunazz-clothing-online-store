@@ -16,6 +16,8 @@ import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Blob "mo:core/Blob";
 
+
+
 actor {
   include MixinStorage();
 
@@ -81,6 +83,7 @@ actor {
     paymentMethod : PaymentMethod;
     status : OrderStatus;
     timestamp : Int;
+    deliveryAddress : Text;
   };
 
   public type PaymentMethod = {
@@ -340,6 +343,14 @@ actor {
         orderRecords.add(id, updatedOrder);
       };
     };
+  };
+
+  // New Admin-only function to get all orders
+  public query ({ caller }) func getAllOrders() : async [OrderRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can access all orders");
+    };
+    orderRecords.values().toArray();
   };
 
   // Contact Information Management

@@ -78,6 +78,7 @@ export default function CheckoutDialog({
       paymentMethod: paymentMethodEnum,
       status: OrderStatus.pending,
       timestamp: BigInt(Date.now() * 1000000),
+      deliveryAddress: userProfile.address || "",
     };
 
     try {
@@ -157,6 +158,14 @@ export default function CheckoutDialog({
               <span className="text-muted-foreground">Price:</span>
               <span className="font-medium">₹{Number(product.price)}</span>
             </div>
+            {userProfile?.address && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Deliver to:</span>
+                <span className="font-medium text-right max-w-[60%]">
+                  {userProfile.address}
+                </span>
+              </div>
+            )}
             <div className="border-t pt-2 mt-2 flex justify-between font-semibold text-base">
               <span>Total:</span>
               <span className="text-primary">₹{Number(product.price)}</span>
@@ -227,6 +236,7 @@ export default function CheckoutDialog({
 
           {/* Checkout Button */}
           <Button
+            data-ocid="checkout.submit_button"
             onClick={handleCheckout}
             className="w-full"
             size="lg"
