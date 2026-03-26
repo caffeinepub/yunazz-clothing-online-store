@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "@tanstack/react-router";
-import { Menu, ShoppingCart, User } from "lucide-react";
+import { Menu, Share2, ShoppingCart, User } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
@@ -18,12 +18,31 @@ export default function Header() {
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border shadow-xs">
+    <header className="sticky top-0 z-50 bg-white border-b border-border shadow-xs">
       <div className="container flex items-center justify-between h-16">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2" data-ocid="nav.link">
-          <span className="font-bold text-xl tracking-tight text-foreground">
-            Yunazz <span className="text-primary">Clothing</span>
+        <Link to="/" className="flex items-center gap-1" data-ocid="nav.link">
+          <span
+            style={{
+              fontFamily: "Playfair Display, Georgia, serif",
+              fontWeight: 700,
+              fontSize: "1.35rem",
+              letterSpacing: "-0.01em",
+              color: "#1a1a1a",
+            }}
+          >
+            Yunazz
+          </span>
+          <span
+            style={{
+              fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+              fontWeight: 500,
+              fontSize: "1rem",
+              color: "#c2185b",
+              marginLeft: 4,
+            }}
+          >
+            Clothing
           </span>
         </Link>
 
@@ -51,8 +70,16 @@ export default function Header() {
             My Orders
           </Link>
           <Link
+            to="/share"
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            data-ocid="nav.share.link"
+          >
+            <Share2 className="h-4 w-4" />
+            Share Store
+          </Link>
+          <Link
             to="/admin"
-            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             data-ocid="nav.admin.link"
           >
             Admin
@@ -147,8 +174,15 @@ export default function Header() {
                   My Orders
                 </Link>
                 <Link
+                  to="/share"
+                  className="text-base font-medium text-primary flex items-center gap-1"
+                  data-ocid="nav.mobile.share.link"
+                >
+                  <Share2 className="h-4 w-4" /> Share Store
+                </Link>
+                <Link
                   to="/admin"
-                  className="text-base font-medium text-primary"
+                  className="text-base font-medium"
                   data-ocid="nav.mobile.admin.link"
                 >
                   Admin

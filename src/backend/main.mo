@@ -122,14 +122,69 @@ actor {
     #cancelled;
   };
 
-  // Data Structures
-  let products = Map.empty<Text, Product>();
-  let customers = Map.empty<Text, CustomerProfile>();
-  let carts = Map.empty<Text, ShoppingCart>();
-  let orders = Map.empty<Text, Order>();
+  // ── Stable storage (persists across canister upgrades) ──────────────────────
+  stable var stableProducts    : [(Text, Product)]                        = [];
+  stable var stableCustomers   : [(Text, CustomerProfile)]                = [];
+  stable var stableCarts       : [(Text, ShoppingCart)]                   = [];
+  stable var stableOrders      : [(Text, Order)]                          = [];
+  stable var stableUpiId       : Text                                     = "";
+  stable var stableAdminAssigned : Bool                                   = false;
+  stable var stableUserRoles   : [(Principal, AccessControl.UserRole)]    = [];
+
+  // ── Runtime maps — loaded from stable storage on start ──────────────────────
+  let products : Map.Map<Text, Product> = do {
+    let m = Map.empty<Text, Product>();
+    for ((k, v) in stableProducts.vals()) { m.add(k, v) };
+    m
+  };
+
+  let customers : Map.Map<Text, CustomerProfile> = do {
+    let m = Map.empty<Text, CustomerProfile>();
+    for ((k, v) in stableCustomers.vals()) { m.add(k, v) };
+    m
+  };
+
+  let carts : Map.Map<Text, ShoppingCart> = do {
+    let m = Map.empty<Text, ShoppingCart>();
+    for ((k, v) in stableCarts.vals()) { m.add(k, v) };
+    m
+  };
+
+  let orders : Map.Map<Text, Order> = do {
+    let m = Map.empty<Text, Order>();
+    for ((k, v) in stableOrders.vals()) { m.add(k, v) };
+    m
+  };
 
   // UPI ID for payments (admin setting)
-  var upiId : Text = "";
+  var upiId : Text = stableUpiId;
+
+  // Access Control — restored from stable state
+  let accessControlState : AccessControl.AccessControlState = do {
+    let m = Map.empty<Principal, AccessControl.UserRole>();
+    for ((k, v) in stableUserRoles.vals()) { m.add(k, v) };
+    { var adminAssigned = stableAdminAssigned; userRoles = m }
+  };
+
+  // ── Upgrade hooks ────────────────────────────────────────────────────────────
+  system func preupgrade() {
+    stableProducts    := products.entries().toArray();
+    stableCustomers   := customers.entries().toArray();
+    stableCarts       := carts.entries().toArray();
+    stableOrders      := orders.entries().toArray();
+    stableUpiId       := upiId;
+    stableAdminAssigned := accessControlState.adminAssigned;
+    stableUserRoles   := accessControlState.userRoles.entries().toArray();
+  };
+
+  system func postupgrade() {
+    // Stable arrays already loaded into runtime maps above; clear to save memory.
+    stableProducts    := [];
+    stableCustomers   := [];
+    stableCarts       := [];
+    stableOrders      := [];
+    stableUserRoles   := [];
+  };
 
   // Product Filters
   public type ProductFilter = {
@@ -199,8 +254,6 @@ actor {
   };
 
   // Access Control System
-  let accessControlState = AccessControl.initState();
-
   public shared ({ caller }) func initializeAccessControl() : async () {
     AccessControl.initialize(accessControlState, caller);
   };
@@ -265,7 +318,6 @@ actor {
     if (cart.customerId != customerId) {
       Runtime.trap("Customer ID mismatch");
     };
-    // Verify caller owns this cart (customerId should match caller's principal text)
     if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only manage your own cart");
     };
@@ -276,7 +328,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view carts");
     };
-    // Verify caller owns this cart or is admin
     if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own cart");
     };
@@ -290,7 +341,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete carts");
     };
-    // Verify caller owns this cart or is admin
     if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only delete your own cart");
     };
@@ -302,7 +352,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can place orders");
     };
-    // Verify caller owns this order
     if (caller.toText() != order.customerId) {
       Runtime.trap("Unauthorized: Can only place orders for yourself");
     };
@@ -321,7 +370,6 @@ actor {
     switch (orders.get(id)) {
       case (null) { Runtime.trap("Order not found") };
       case (?order) {
-        // Verify caller owns this order or is admin
         if (caller.toText() != order.customerId and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only view your own orders");
         };
@@ -334,7 +382,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view orders");
     };
-    // Verify caller owns these orders or is admin
     if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own orders");
     };
@@ -360,6 +407,13 @@ actor {
     };
   };
 
+  public query ({ caller }) func getAllOrders() : async [Order] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all orders");
+    };
+    orders.values().toArray();
+  };
+
   // Admin Functions
   public shared ({ caller }) func addProduct(product : Product) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -378,7 +432,7 @@ actor {
     };
     switch (products.get(product.id)) {
       case (null) { Runtime.trap("Product not found") };
-      case (?existingProduct) {
+      case (?_existingProduct) {
         if (product.name != "" and product.price > 0 and product.sizes.size() > 0) {
           products.add(product.id, product);
         } else {

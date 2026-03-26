@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Instagram, Mail, Phone } from "lucide-react";
+import { Instagram, Mail, Phone, Share2 } from "lucide-react";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -36,6 +36,14 @@ export default function Footer() {
               className="text-white/60 hover:text-white text-sm transition-colors"
             >
               Track My Order
+            </Link>
+            <Link
+              to="/share"
+              className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1"
+              data-ocid="footer.share.link"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              Share with Friends
             </Link>
             <Link
               to="/admin"

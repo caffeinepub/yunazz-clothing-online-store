@@ -24,7 +24,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  Copy,
+  MessageSquare,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+} from "lucide-react";
 import { motion } from "motion/react";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -37,6 +44,12 @@ import type {
   ProductType,
 } from "../backend";
 import { OrderStatus, PaymentMethod } from "../backend";
+import ReviewDialog, {
+  StarRating,
+  getAverageRating,
+  getReviews,
+} from "../components/ReviewDialog";
+import type { Review } from "../components/ReviewDialog";
 import { useCart } from "../context/CartContext";
 import {
   useGetAllProducts,
@@ -83,6 +96,23 @@ export default function HomePage() {
   } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    const all = getReviews();
+    const sorted = [...all]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5);
+    setRecentReviews(sorted);
+  }, []);
+
+  const refreshReviews = () => {
+    const all = getReviews();
+    const sorted = [...all]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 5);
+    setRecentReviews(sorted);
+  };
 
   const categories = [
     "All",
@@ -175,9 +205,7 @@ export default function HomePage() {
                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             </div>
-            {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            {/* Label */}
             <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-start gap-3">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
@@ -224,9 +252,7 @@ export default function HomePage() {
                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             </div>
-            {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-            {/* Label */}
             <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-start gap-3">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
@@ -310,10 +336,69 @@ export default function HomePage() {
                 product={product}
                 index={idx + 1}
                 onAddToCart={addItem}
+                onReviewSubmitted={refreshReviews}
               />
             ))}
           </div>
         )}
+      </section>
+
+      {/* Customer Reviews Section */}
+      <section className="container py-12 border-t border-border">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-2">
+            Customer Reviews
+          </h2>
+          <p className="text-muted-foreground text-sm mb-8">
+            What our customers are saying
+          </p>
+
+          {recentReviews.length === 0 ? (
+            <div
+              className="text-center py-12 text-muted-foreground bg-secondary/30 rounded-2xl"
+              data-ocid="reviews.empty_state"
+            >
+              <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
+              <p className="font-medium">No reviews yet</p>
+              <p className="text-sm">Be the first to review a product!</p>
+            </div>
+          ) : (
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              data-ocid="reviews.list"
+            >
+              {recentReviews.map((review, idx) => (
+                <motion.div
+                  key={review.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.08, duration: 0.4 }}
+                  className="bg-card border border-border rounded-xl p-4 shadow-sm"
+                  data-ocid={`reviews.item.${idx + 1}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">
+                      {review.customerName}
+                    </span>
+                    <StarRating rating={review.rating} size={13} />
+                  </div>
+                  <p className="text-xs text-primary font-medium mb-1">
+                    {review.productName}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {review.comment}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </section>
 
       {/* Cart Sidebar */}
@@ -439,16 +524,20 @@ function ProductCard({
   product,
   index,
   onAddToCart,
+  onReviewSubmitted,
 }: {
   product: Product;
   index: number;
   onAddToCart: (item: import("../context/CartContext").CartItem) => void;
+  onReviewSubmitted: () => void;
 }) {
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(
     product.sizes.length > 0 ? product.sizes[0] : null,
   );
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const { avg, count } = getAverageRating(product.id);
 
   useEffect(() => {
     if (product.imageUrls.length > 0) {
@@ -486,71 +575,109 @@ function ProductCard({
   const catLabel = getProductTypeLabel(product.category);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.05, 0.4) }}
-      className="group bg-card rounded-xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300"
-      data-ocid={`products.item.${index}`}
-    >
-      <div className="aspect-[3/4] relative overflow-hidden bg-muted">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={product.name}
-            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-              imgLoaded ? "opacity-100" : "opacity-0"
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: Math.min(index * 0.05, 0.4) }}
+        className="group bg-card rounded-xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300"
+        data-ocid={`products.item.${index}`}
+      >
+        <div className="aspect-[3/4] relative overflow-hidden bg-muted">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+                imgLoaded ? "opacity-100" : "opacity-0"
+              }`}
+              onLoad={() => setImgLoaded(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+              <ShoppingBag className="h-10 w-10 text-muted-foreground opacity-40" />
+            </div>
+          )}
+          <Badge
+            className={`absolute top-2 left-2 text-xs border-0 ${
+              CATEGORY_COLORS[catLabel] ?? "bg-gray-100 text-gray-700"
             }`}
-            onLoad={() => setImgLoaded(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <ShoppingBag className="h-10 w-10 text-muted-foreground opacity-40" />
-          </div>
-        )}
-        <Badge
-          className={`absolute top-2 left-2 text-xs border-0 ${
-            CATEGORY_COLORS[catLabel] ?? "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {catLabel}
-        </Badge>
-      </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-sm truncate mb-1">{product.name}</h3>
-        <p className="text-primary font-bold text-base mb-2">
-          {formatPrice(product.price)}
-        </p>
-        {product.sizes.length > 1 && (
-          <Select
-            value={selectedSize ? getSizeLabel(selectedSize) : ""}
-            onValueChange={(val) => {
-              const found = product.sizes.find((s) => getSizeLabel(s) === val);
-              if (found) setSelectedSize(found);
-            }}
           >
-            <SelectTrigger className="h-7 text-xs mb-2">
-              <SelectValue placeholder="Size" />
-            </SelectTrigger>
-            <SelectContent>
-              {product.sizes.map((s) => (
-                <SelectItem key={getSizeLabel(s)} value={getSizeLabel(s)}>
-                  {getSizeLabel(s)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        <Button
-          size="sm"
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8"
-          onClick={handleAdd}
-          disabled={product.stockQuantity === BigInt(0)}
-        >
-          {product.stockQuantity === BigInt(0) ? "Out of Stock" : "Add to Cart"}
-        </Button>
-      </div>
-    </motion.div>
+            {catLabel}
+          </Badge>
+        </div>
+        <div className="p-3">
+          <h3 className="font-semibold text-sm truncate mb-1">
+            {product.name}
+          </h3>
+          {/* Star Rating */}
+          {count > 0 ? (
+            <div className="flex items-center gap-1 mb-1">
+              <StarRating rating={avg} size={12} />
+              <span className="text-xs text-muted-foreground">
+                {avg.toFixed(1)} · {count} {count === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+          ) : (
+            <div className="mb-1" />
+          )}
+          {/* Write Review link */}
+          <button
+            type="button"
+            onClick={() => setReviewOpen(true)}
+            className="text-xs text-primary hover:underline mb-2 block"
+            data-ocid={`products.review.button.${index}`}
+          >
+            ✍️ Write a Review
+          </button>
+          <p className="text-primary font-bold text-base mb-2">
+            {formatPrice(product.price)}
+          </p>
+          {product.sizes.length > 1 && (
+            <Select
+              value={selectedSize ? getSizeLabel(selectedSize) : ""}
+              onValueChange={(val) => {
+                const found = product.sizes.find(
+                  (s) => getSizeLabel(s) === val,
+                );
+                if (found) setSelectedSize(found);
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs mb-2">
+                <SelectValue placeholder="Size" />
+              </SelectTrigger>
+              <SelectContent>
+                {product.sizes.map((s) => (
+                  <SelectItem key={getSizeLabel(s)} value={getSizeLabel(s)}>
+                    {getSizeLabel(s)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button
+            size="sm"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8"
+            onClick={handleAdd}
+            disabled={product.stockQuantity === BigInt(0)}
+          >
+            {product.stockQuantity === BigInt(0)
+              ? "Out of Stock"
+              : "Add to Cart"}
+          </Button>
+        </div>
+      </motion.div>
+
+      <ReviewDialog
+        open={reviewOpen}
+        onClose={() => {
+          setReviewOpen(false);
+          onReviewSubmitted();
+        }}
+        productId={product.id}
+        productName={product.name}
+      />
+    </>
   );
 }
 

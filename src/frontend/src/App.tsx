@@ -11,6 +11,7 @@ import { CartProvider } from "./context/CartContext";
 import AdminDashboard from "./pages/AdminDashboard";
 import HomePage from "./pages/HomePage";
 import OrdersPage from "./pages/OrdersPage";
+import ShareStorePage from "./pages/ShareStorePage";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,18 @@ const adminRoute = createRoute({
   component: AdminDashboard,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, ordersRoute, adminRoute]);
+const shareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/share",
+  component: ShareStorePage,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  ordersRoute,
+  adminRoute,
+  shareRoute,
+]);
 
 const router = createRouter({ routeTree });
 

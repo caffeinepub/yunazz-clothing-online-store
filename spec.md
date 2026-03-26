@@ -1,23 +1,24 @@
 # Yunazz Clothing Online Store
 
 ## Current State
-Full e-commerce store with admin dashboard, product management, orders, COD/UPI/card payment, and contact info. Admin dashboard exists but has no flow to initialize the admin role after deployment/redeployment. When the canister restarts, the access control state may reset, leaving no admin, causing product add/edit operations to fail with an empty or unclear error.
+The backend has no stable variables. All data (products, orders, customers, UPI ID, access control) is stored in-memory only and is wiped on every canister upgrade/rebuild. Customers visit the live site and see no products because data was lost on the last deployment.
 
 ## Requested Changes (Diff)
 
 ### Add
-- "Initialize as Admin" button on the admin page when the current user does not have admin role
-- `useInitializeAccessControl` query hook
-- Better error message extraction from ICP backend errors
+- Stable variables for all persistent state: products, orders, customers, carts, UPI ID, access control roles
+- `system func preupgrade()` to serialize maps to stable arrays before upgrade
+- `system func postupgrade()` to restore maps from stable arrays after upgrade
 
 ### Modify
-- AdminDashboard: show an "Activate Admin" card instead of the generic access denied alert when user is not admin, with a button to claim first-admin role
-- ProductFormDialog: improve error message extraction for ICP trap errors
+- Runtime map initialization: load from stable vars instead of starting empty
+- AccessControlState initialization: load adminAssigned and userRoles from stable vars
 
 ### Remove
-- Nothing removed
+- Nothing removed from functionality
 
 ## Implementation Plan
-1. Add `useInitializeAccessControl` mutation hook in useQueries.ts
-2. Update AdminDashboard to show an "Activate Admin" call-to-action when userRole !== 'admin'
-3. Improve error handling in ProductFormDialog to surface the actual backend error message
+1. Add stable var declarations for all data structures
+2. Change runtime map/state initialization to populate from stable vars
+3. Add preupgrade hook to save all state to stable vars
+4. Add postupgrade hook to clear stable vars after restore (optional cleanup)
