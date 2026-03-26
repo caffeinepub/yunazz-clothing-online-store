@@ -22,11 +22,9 @@ export default function Header() {
       <div className="container flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2" data-ocid="nav.link">
-          <img
-            src="/assets/generated/yunazz-logo-transparent.dim_300x80.png"
-            alt="Yunazz Clothing"
-            className="h-10 w-auto object-contain"
-          />
+          <span className="font-bold text-xl tracking-tight text-foreground">
+            Yunazz <span className="text-primary">Clothing</span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}
