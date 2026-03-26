@@ -1,191 +1,185 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Share2, User, X } from "lucide-react";
-import { useState } from "react";
-import { useAdminNavigation } from "../hooks/useAdminNavigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Link } from "@tanstack/react-router";
+import { Menu, ShoppingCart, User } from "lucide-react";
+import { useCart } from "../context/CartContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function Header() {
-  const { identity, login, clear, loginStatus } = useInternetIdentity();
-  const { handleAdminClick } = useAdminNavigation();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const isAuthenticated = !!identity;
-  const disabled = loginStatus === "logging-in";
-
-  const handleAuth = async () => {
-    if (isAuthenticated) {
-      await clear();
-      queryClient.clear();
-      navigate({ to: "/" });
-    } else {
-      try {
-        await login();
-      } catch (error: any) {
-        console.error("Login error:", error);
-        if (error.message === "User is already authenticated") {
-          await clear();
-          setTimeout(() => login(), 300);
-        }
-      }
-    }
-    setMobileMenuOpen(false);
-  };
-
-  const handleAdminClickWithMenu = (e: React.MouseEvent) => {
-    setMobileMenuOpen(false);
-    handleAdminClick(e);
-  };
+  const { items } = useCart();
+  const { login, clear, loginStatus, identity } = useInternetIdentity();
+  const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
+    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border shadow-xs">
+      <div className="container flex items-center justify-between h-16">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2" data-ocid="nav.link">
           <img
-            src="/assets/generated/yunazz-logo-transparent.dim_200x200.png"
+            src="/assets/generated/yunazz-logo-transparent.dim_300x80.png"
             alt="Yunazz Clothing"
-            className="h-10 w-10"
+            className="h-10 w-auto object-contain"
           />
-          <span className="text-xl font-bold tracking-tight">
-            Yunazz Clothing
-          </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-6">
           <Link
             to="/"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            data-ocid="nav.home.link"
           >
             Home
           </Link>
           <Link
-            to="/products"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            to="/"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            data-ocid="nav.shop.link"
           >
-            Products
+            Shop
           </Link>
           <Link
-            to="/contact"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            to="/orders"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            data-ocid="nav.orders.link"
           >
-            Contact
+            My Orders
           </Link>
-          {isAuthenticated && (
-            <Link
-              to="/orders"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              My Orders
-            </Link>
-          )}
           <Link
-            to="/share"
-            className="text-sm font-medium transition-colors hover:text-primary"
-          >
-            Share Store
-          </Link>
-          <a
-            href="/admin"
-            onClick={handleAdminClick}
-            className="text-sm font-medium transition-colors hover:text-primary cursor-pointer"
+            to="/admin"
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            data-ocid="nav.admin.link"
           >
             Admin
-          </a>
+          </Link>
         </nav>
 
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={handleAuth}
-            disabled={disabled}
-            variant={isAuthenticated ? "outline" : "default"}
-            size="sm"
-            className="hidden md:flex"
-          >
-            <User className="mr-2 h-4 w-4" />
-            {disabled ? "Loading..." : isAuthenticated ? "Logout" : "Login"}
-          </Button>
+        {/* Right actions */}
+        <div className="flex items-center gap-3">
+          {/* Cart */}
+          <CartButton cartCount={cartCount} />
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+          {/* Account */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                data-ocid="nav.account.button"
+              >
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              data-ocid="nav.account.dropdown_menu"
+            >
+              {identity ? (
+                <>
+                  <DropdownMenuItem disabled>
+                    <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                      {identity.getPrincipal().toString().slice(0, 12)}...
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={clear}
+                    data-ocid="nav.logout.button"
+                  >
+                    Log Out
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem
+                  onClick={login}
+                  disabled={loginStatus === "logging-in"}
+                  data-ocid="nav.login.button"
+                >
+                  {loginStatus === "logging-in"
+                    ? "Logging in..."
+                    : "Admin Login"}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Mobile menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                data-ocid="nav.mobile_menu.button"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-64"
+              data-ocid="nav.mobile_menu.sheet"
+            >
+              <nav className="flex flex-col gap-4 mt-6">
+                <Link
+                  to="/"
+                  className="text-base font-medium"
+                  data-ocid="nav.mobile.home.link"
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/"
+                  className="text-base font-medium"
+                  data-ocid="nav.mobile.shop.link"
+                >
+                  Shop
+                </Link>
+                <Link
+                  to="/orders"
+                  className="text-base font-medium"
+                  data-ocid="nav.mobile.orders.link"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  to="/admin"
+                  className="text-base font-medium text-primary"
+                  data-ocid="nav.mobile.admin.link"
+                >
+                  Admin
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background">
-          <nav className="container flex flex-col space-y-4 py-4">
-            <Link
-              to="/"
-              className="text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/products"
-              className="text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Products
-            </Link>
-            <Link
-              to="/contact"
-              className="text-sm font-medium transition-colors hover:text-primary"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Contact
-            </Link>
-            {isAuthenticated && (
-              <Link
-                to="/orders"
-                className="text-sm font-medium transition-colors hover:text-primary"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                My Orders
-              </Link>
-            )}
-            <Link
-              to="/share"
-              className="text-sm font-medium transition-colors hover:text-primary flex items-center"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              Share Store
-            </Link>
-            <a
-              href="/admin"
-              onClick={handleAdminClickWithMenu}
-              className="text-sm font-medium transition-colors hover:text-primary cursor-pointer"
-            >
-              Admin
-            </a>
-            <Button
-              onClick={handleAuth}
-              disabled={disabled}
-              variant={isAuthenticated ? "outline" : "default"}
-              size="sm"
-            >
-              <User className="mr-2 h-4 w-4" />
-              {disabled ? "Loading..." : isAuthenticated ? "Logout" : "Login"}
-            </Button>
-          </nav>
-        </div>
-      )}
     </header>
+  );
+}
+
+function CartButton({ cartCount }: { cartCount: number }) {
+  const { openCart } = useCart();
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative"
+      onClick={openCart}
+      data-ocid="cart.open_modal_button"
+    >
+      <ShoppingCart className="h-5 w-5" />
+      {cartCount > 0 && (
+        <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] bg-primary text-primary-foreground">
+          {cartCount}
+        </Badge>
+      )}
+    </Button>
   );
 }

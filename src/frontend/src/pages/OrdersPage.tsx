@@ -1,165 +1,226 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
-import { Package, ShoppingBag } from "lucide-react";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useGetOrdersByUser } from "../hooks/useQueries";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Package, Search } from "lucide-react";
+import { useState } from "react";
+import type { Order } from "../backend";
+import { OrderStatus } from "../backend";
+import { useGetOrdersByCustomerId } from "../hooks/useQueries";
+
+function formatPrice(paise: bigint) {
+  return `₹${(Number(paise) / 100).toFixed(0)}`;
+}
+
+const STATUS_STEPS = [
+  { key: OrderStatus.pending, label: "Ordered" },
+  { key: OrderStatus.confirmed, label: "Confirmed" },
+  { key: OrderStatus.shipped, label: "Shipped" },
+  { key: OrderStatus.delivered, label: "Delivered" },
+];
+
+const STATUS_MESSAGES: Record<OrderStatus, { message: string; emoji: string }> =
+  {
+    [OrderStatus.pending]: {
+      message: "Order placed! We're preparing your order.",
+      emoji: "📦",
+    },
+    [OrderStatus.confirmed]: {
+      message: "Payment received! Your order is being prepared.",
+      emoji: "✅",
+    },
+    [OrderStatus.shipped]: {
+      message:
+        "Your order is on the way! Our delivery partner is bringing it to you.",
+      emoji: "🚚",
+    },
+    [OrderStatus.delivered]: {
+      message:
+        "Your order has been delivered! Thank you for shopping with Yunazz Clothing.",
+      emoji: "🎉",
+    },
+    [OrderStatus.cancelled]: {
+      message: "Your order has been cancelled.",
+      emoji: "❌",
+    },
+  };
+
+function getProgressValue(status: OrderStatus): number {
+  switch (status) {
+    case OrderStatus.pending:
+      return 10;
+    case OrderStatus.confirmed:
+      return 40;
+    case OrderStatus.shipped:
+      return 70;
+    case OrderStatus.delivered:
+      return 100;
+    default:
+      return 0;
+  }
+}
 
 export default function OrdersPage() {
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity;
-  const principal = identity?.getPrincipal();
+  const [query, setQuery] = useState("");
+  const [searched, setSearched] = useState("");
 
-  const { data: orders = [], isLoading } = useGetOrdersByUser(principal);
+  const { data: orders = [], isLoading } = useGetOrdersByCustomerId(searched);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="container py-16">
-        <Alert>
-          <AlertDescription>
-            Please log in to view your orders.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return "default";
-      case "shipped":
-        return "default";
-      case "confirmed":
-        return "secondary";
-      case "pending":
-        return "outline";
-      case "cancelled":
-        return "destructive";
-      default:
-        return "outline";
-    }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearched(query.trim());
   };
-
-  const getPaymentMethodLabel = (method: string) => {
-    switch (method) {
-      case "upi":
-        return "UPI";
-      case "card":
-        return "Card";
-      case "cashOnDelivery":
-        return "Cash on Delivery";
-      default:
-        return method;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-muted rounded w-1/3" />
-          <div className="space-y-4">
-            {["s1", "s2", "s3"].map((sk) => (
-              <div key={sk} className="h-48 bg-muted rounded" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-          My Orders
-        </h1>
-        <p className="text-muted-foreground">Track and manage your orders</p>
-      </div>
+    <section className="container py-12 max-w-2xl mx-auto">
+      <h1 className="font-display text-3xl font-bold mb-2">My Orders</h1>
+      <p className="text-muted-foreground mb-8">
+        Enter your email or phone number to track your orders.
+      </p>
 
-      {orders.length === 0 ? (
-        <div className="text-center py-16">
-          <Package className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
-          <p className="text-muted-foreground mb-6">
-            Start shopping to see your orders here
-          </p>
-          <Button asChild>
-            <Link to="/products">
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              Browse Products
-            </Link>
-          </Button>
+      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
+        <div className="flex-1">
+          <Label htmlFor="orderQuery" className="sr-only">
+            Email or Phone
+          </Label>
+          <Input
+            id="orderQuery"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter your email or phone number"
+            data-ocid="orders.search_input"
+          />
         </div>
-      ) : (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <Card key={order.id}>
-              <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-lg">
-                      Order #{order.id.slice(0, 8)}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {new Date(
-                        Number(order.timestamp) / 1000000,
-                      ).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
-                    <Badge variant="outline">
-                      {getPaymentMethodLabel(order.paymentMethod)}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    {order.products.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center gap-4 py-2 border-b last:border-0"
-                      >
-                        {product.images.length > 0 && (
-                          <img
-                            src={product.images[0].getDirectURL()}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            ₹{Number(product.price)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t">
-                    <span className="font-semibold">Total Amount:</span>
-                    <span className="text-xl font-bold text-primary">
-                      ₹{Number(order.totalAmount)}
-                    </span>
-                  </div>
-                </div>
+        <Button
+          type="submit"
+          className="bg-primary hover:bg-primary/90"
+          data-ocid="orders.search.primary_button"
+        >
+          <Search className="h-4 w-4 mr-2" />
+          Track
+        </Button>
+      </form>
+
+      {isLoading && (
+        <div className="space-y-4" data-ocid="orders.loading_state">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6 space-y-3">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-    </div>
+
+      {!isLoading && searched && orders.length === 0 && (
+        <div
+          className="text-center py-12 text-muted-foreground"
+          data-ocid="orders.empty_state"
+        >
+          <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No orders found</p>
+          <p className="text-sm">Try a different email or phone number.</p>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {orders.map((order, idx) => (
+          <OrderCard key={order.id} order={order} index={idx + 1} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function OrderCard({ order, index }: { order: Order; index: number }) {
+  const statusInfo =
+    STATUS_MESSAGES[order.status] ?? STATUS_MESSAGES[OrderStatus.pending];
+  const stepIdx = STATUS_STEPS.findIndex((s) => s.key === order.status);
+  const progress = getProgressValue(order.status);
+
+  const date = new Date(Number(order.createdAt)).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  return (
+    <Card className="shadow-card" data-ocid={`orders.item.${index}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-semibold font-mono">
+            {order.id}
+          </CardTitle>
+          <Badge
+            className={
+              {
+                [OrderStatus.pending]: "bg-yellow-100 text-yellow-800",
+                [OrderStatus.confirmed]: "bg-blue-100 text-blue-800",
+                [OrderStatus.shipped]: "bg-purple-100 text-purple-800",
+                [OrderStatus.delivered]: "bg-green-100 text-green-800",
+                [OrderStatus.cancelled]: "bg-red-100 text-red-800",
+              }[order.status] ?? ""
+            }
+          >
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{date}</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Status message */}
+        <div className="bg-secondary/50 rounded-lg p-3 flex gap-2">
+          <span className="text-xl">{statusInfo.emoji}</span>
+          <p className="text-sm">{statusInfo.message}</p>
+        </div>
+
+        {/* Progress bar */}
+        {order.status !== OrderStatus.cancelled && (
+          <div>
+            <Progress value={progress} className="h-2 mb-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              {STATUS_STEPS.map((step, i) => (
+                <span
+                  key={step.key}
+                  className={i <= stepIdx ? "text-primary font-medium" : ""}
+                >
+                  {step.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Separator />
+
+        {/* Order items */}
+        <div className="space-y-1">
+          {order.items.map((item) => (
+            <div
+              key={`${item.productId}-${item.size.__kind__}`}
+              className="flex justify-between text-sm"
+            >
+              <span>
+                {item.productName} × {Number(item.quantity)} (
+                {item.size.__kind__})
+              </span>
+              <span>{formatPrice(item.price * item.quantity)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between font-semibold">
+          <span>Total</span>
+          <span className="text-primary">{formatPrice(order.totalAmount)}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

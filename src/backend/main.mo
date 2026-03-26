@@ -2,20 +2,20 @@ import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import Stripe "stripe/stripe";
 import MixinStorage "blob-storage/Mixin";
+
 import OutCall "http-outcalls/outcall";
 import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
-import Text "mo:core/Text";
-import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
+import Text "mo:core/Text";
 import Time "mo:core/Time";
-import List "mo:core/List";
-import Principal "mo:core/Principal";
+import Order "mo:core/Order";
 import Nat "mo:core/Nat";
+import List "mo:core/List";
 import Int "mo:core/Int";
+import Principal "mo:core/Principal";
 import Blob "mo:core/Blob";
-
 
 
 actor {
@@ -23,17 +23,12 @@ actor {
 
   // Product Types and Sizes
   public type ProductType = {
-    #Shirt;
-    #Pant;
-    #Dress;
-    #TShirt;
-    #Jacket;
-    #Sweater;
-    #Blazer;
-    #Shorts;
-    #Skirt;
     #Jeans;
-    #Suit;
+    #Tops;
+    #Dresses;
+    #Kurtas;
+    #Sarees;
+    #Leggings;
     #Other : Text;
   };
 
@@ -53,37 +48,64 @@ actor {
     };
   };
 
-  module OrderRecord {
-    public func compare(o1 : OrderRecord, o2 : OrderRecord) : Order.Order {
-      switch (Text.compare(o1.id, o2.id)) {
-        case (#equal) { Nat.compare(Int.abs(o1.timestamp), Int.abs(o2.timestamp)) };
-        case (order) { order };
-      };
-    };
-  };
-
-  // Product and Order Types
+  // Product Type
   public type Product = {
     id : Text;
     name : Text;
     description : Text;
     price : Nat;
+    category : ProductType;
     sizes : [ProductSize];
-    productType : ProductType;
-    images : [Storage.ExternalBlob];
-    isAvailable : Bool;
-    stockCount : Nat;
+    stockQuantity : Nat;
+    imageUrls : [Storage.ExternalBlob];
+    createdAt : Int;
   };
 
-  public type OrderRecord = {
+  // Customer Profile Type
+  public type CustomerProfile = {
+    username : Text;
+    email : Text;
+    phone : Text;
+    address : Text;
+    createdAt : Int;
+  };
+
+  // Cart Item Type
+  public type CartItem = {
+    productId : Text;
+    quantity : Nat;
+    size : ProductSize;
+  };
+
+  // Shopping Cart Type
+  public type ShoppingCart = {
+    customerId : Text;
+    items : [CartItem];
+    createdAt : Int;
+    updatedAt : Int;
+  };
+
+  // Order Item Type
+  public type OrderItem = {
+    productId : Text;
+    productName : Text;
+    price : Nat;
+    quantity : Nat;
+    size : ProductSize;
+  };
+
+  // Order Type
+  public type Order = {
     id : Text;
-    user : Principal;
-    products : [Product];
+    customerId : Text;
+    customerName : Text;
+    customerPhone : Text;
+    customerAddress : Text;
+    items : [OrderItem];
     totalAmount : Nat;
     paymentMethod : PaymentMethod;
     status : OrderStatus;
-    timestamp : Int;
-    deliveryAddress : Text;
+    createdAt : Int;
   };
 
   public type PaymentMethod = {
@@ -100,48 +122,29 @@ actor {
     #cancelled;
   };
 
-  // Contact Info Type
-  public type ContactInfo = {
-    phone : Text;
-    email : Text;
-    instagram : Text;
-    instagramQr : Storage.ExternalBlob;
-  };
-
-  // User Profile Type
-  public type UserProfile = {
-    name : Text;
-    email : Text;
-    phone : Text;
-    address : Text;
-  };
-
-  // Product Data Structures
+  // Data Structures
   let products = Map.empty<Text, Product>();
-  let orderRecords = Map.empty<Text, OrderRecord>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
+  let customers = Map.empty<Text, CustomerProfile>();
+  let carts = Map.empty<Text, ShoppingCart>();
+  let orders = Map.empty<Text, Order>();
 
-  // Contact Information
-  var contactInfo : ContactInfo = {
-    phone = "8904107520";
-    email = "ymd72675@gmail.com";
-    instagram = "@yunazzclotheshub";
-    instagramQr = Blob.empty();
-  };
+  // UPI ID for payments (admin setting)
+  var upiId : Text = "";
 
+  // Product Filters
   public type ProductFilter = {
-    productType : ?ProductType;
+    category : ?ProductType;
     size : ?ProductSize;
     minPrice : ?Nat;
     maxPrice : ?Nat;
-    isAvailable : ?Bool;
+    inStock : ?Bool;
     searchText : ?Text;
   };
 
-  func matchesProductType(product : Product, filter : ?ProductType) : Bool {
+  func matchesCategory(product : Product, filter : ?ProductType) : Bool {
     switch (filter) {
       case (null) { true };
-      case (?productType) { product.productType == productType };
+      case (?category) { product.category == category };
     };
   };
 
@@ -171,10 +174,10 @@ actor {
     minOk and maxOk;
   };
 
-  func matchesIsAvailable(product : Product, filter : ?Bool) : Bool {
+  func matchesStockStatus(product : Product, filter : ?Bool) : Bool {
     switch (filter) {
       case (null) { true };
-      case (?value) { product.isAvailable == value };
+      case (?inStock) { inStock == (product.stockQuantity > 0) };
     };
   };
 
@@ -188,10 +191,10 @@ actor {
   };
 
   func filterProduct(product : Product, filter : ProductFilter) : Bool {
-    matchesProductType(product, filter.productType) and
+    matchesCategory(product, filter.category) and
     matchesSize(product, filter.size) and
     matchesPriceRange(product, filter.minPrice, filter.maxPrice) and
-    matchesIsAvailable(product, filter.isAvailable) and
+    matchesStockStatus(product, filter.inStock) and
     matchesSearchText(product, filter.searchText);
   };
 
@@ -214,38 +217,37 @@ actor {
     AccessControl.isAdmin(accessControlState, caller);
   };
 
-  // User Profile Management
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+  public query ({ caller }) func getCallerUserProfile() : async ?CustomerProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
-    userProfiles.get(caller);
+    customers.get(caller.toText());
   };
 
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?CustomerProfile {
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
-    userProfiles.get(user);
+    customers.get(user.toText());
   };
 
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+  public shared ({ caller }) func saveCallerUserProfile(profile : CustomerProfile) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
-    userProfiles.add(caller, profile);
+    customers.add(caller.toText(), profile);
   };
 
   // Product Management Functions (Public Read Access)
   public query func getAllProducts() : async [Product] {
-    products.values().toArray().sort();
+    products.values().toArray();
   };
 
   public query func getFilteredProducts(filter : ProductFilter) : async [Product] {
     let filtered = products.values().toArray().filter(
       func(product : Product) : Bool { filterProduct(product, filter) }
     );
-    filtered.sort();
+    filtered;
   };
 
   public query func getProductById(id : Text) : async Product {
@@ -255,62 +257,72 @@ actor {
     };
   };
 
-  // Admin Functions for Product Management
-  public shared ({ caller }) func addProduct(product : Product) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+  // Shopping Cart Functions
+  public shared ({ caller }) func createOrUpdateCart(customerId : Text, cart : ShoppingCart) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can manage carts");
     };
-    products.add(product.id, product);
+    if (cart.customerId != customerId) {
+      Runtime.trap("Customer ID mismatch");
+    };
+    // Verify caller owns this cart (customerId should match caller's principal text)
+    if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only manage your own cart");
+    };
+    carts.add(customerId, cart);
   };
 
-  public shared ({ caller }) func updateProduct(product : Product) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+  public query ({ caller }) func getCartByCustomerId(customerId : Text) : async ShoppingCart {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view carts");
     };
-    products.add(product.id, product);
+    // Verify caller owns this cart or is admin
+    if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own cart");
+    };
+    switch (carts.get(customerId)) {
+      case (null) { Runtime.trap("Cart not found") };
+      case (?cart) { cart };
+    };
   };
 
-  public shared ({ caller }) func deleteProduct(id : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+  public shared ({ caller }) func deleteCart(customerId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete carts");
     };
-    products.remove(id);
-  };
-
-  public shared ({ caller }) func updateProductImages(id : Text, images : [Storage.ExternalBlob]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+    // Verify caller owns this cart or is admin
+    if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only delete your own cart");
     };
-    switch (products.get(id)) {
-      case (null) { Runtime.trap("Product not found") };
-      case (?product) {
-        let updatedProduct = {
-          product with
-          images = images;
-        };
-        products.add(id, updatedProduct);
-      };
-    };
+    carts.remove(customerId);
   };
 
   // Order Management Functions
-  public shared ({ caller }) func placeOrder(order : OrderRecord) : async () {
+  public shared ({ caller }) func placeOrder(order : Order) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can place orders");
     };
-    // Verify that the order belongs to the caller
-    if (order.user != caller) {
-      Runtime.trap("Unauthorized: Cannot place order for another user");
+    // Verify caller owns this order
+    if (caller.toText() != order.customerId) {
+      Runtime.trap("Unauthorized: Can only place orders for yourself");
     };
-    orderRecords.add(order.id, order);
+    if (order.customerId != "" and order.customerName != "" and order.customerPhone != "" and order.customerAddress != "" and order.items.size() > 0) {
+      orders.add(order.id, order);
+      carts.remove(order.customerId);
+    } else {
+      Runtime.trap("Invalid order data");
+    };
   };
 
-  public query ({ caller }) func getOrderById(id : Text) : async OrderRecord {
-    switch (orderRecords.get(id)) {
+  public query ({ caller }) func getOrderById(id : Text) : async Order {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view orders");
+    };
+    switch (orders.get(id)) {
       case (null) { Runtime.trap("Order not found") };
       case (?order) {
-        // Only the order owner or admin can view the order
-        if (order.user != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+        // Verify caller owns this order or is admin
+        if (caller.toText() != order.customerId and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: Can only view your own orders");
         };
         order;
@@ -318,54 +330,100 @@ actor {
     };
   };
 
-  public query ({ caller }) func getOrdersByUser(user : Principal) : async [OrderRecord] {
-    // Users can only view their own orders, admins can view any user's orders
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+  public query ({ caller }) func getOrdersByCustomerId(customerId : Text) : async [Order] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view orders");
+    };
+    // Verify caller owns these orders or is admin
+    if (caller.toText() != customerId and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own orders");
     };
-    let filtered = orderRecords.values().toArray().filter(
-      func(order : OrderRecord) : Bool { order.user == user }
+    let filtered = orders.values().toArray().filter(
+      func(order : Order) : Bool { order.customerId == customerId }
     );
-    filtered.sort();
+    filtered;
   };
 
   public shared ({ caller }) func updateOrderStatus(id : Text, status : OrderStatus) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+      Runtime.trap("Unauthorized: Only admins can update order status");
     };
-    switch (orderRecords.get(id)) {
+    switch (orders.get(id)) {
       case (null) { Runtime.trap("Order not found") };
       case (?order) {
         let updatedOrder = {
           order with
           status = status;
         };
-        orderRecords.add(id, updatedOrder);
+        orders.add(id, updatedOrder);
       };
     };
   };
 
-  // New Admin-only function to get all orders
-  public query ({ caller }) func getAllOrders() : async [OrderRecord] {
+  // Admin Functions
+  public shared ({ caller }) func addProduct(product : Product) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can access all orders");
+      Runtime.trap("Unauthorized: Only admins can add products");
     };
-    orderRecords.values().toArray();
+    if (product.id != "" and product.name != "" and product.price > 0 and product.sizes.size() > 0) {
+      products.add(product.id, product);
+    } else {
+      Runtime.trap("Invalid product data");
+    };
   };
 
-  // Contact Information Management
-  public shared ({ caller }) func setAdminContactInfo(info : ContactInfo) : async () {
+  public shared ({ caller }) func updateProduct(product : Product) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
+      Runtime.trap("Unauthorized: Only admins can update products");
     };
-    contactInfo := info;
+    switch (products.get(product.id)) {
+      case (null) { Runtime.trap("Product not found") };
+      case (?existingProduct) {
+        if (product.name != "" and product.price > 0 and product.sizes.size() > 0) {
+          products.add(product.id, product);
+        } else {
+          Runtime.trap("Invalid product data");
+        };
+      };
+    };
   };
 
-  public query func getContactInfo() : async ContactInfo {
-    contactInfo;
+  public shared ({ caller }) func deleteProduct(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete products");
+    };
+    products.remove(id);
   };
 
-  // Stripe Integration
+  public shared ({ caller }) func updateProductImages(id : Text, images : [Storage.ExternalBlob]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update product images");
+    };
+    switch (products.get(id)) {
+      case (null) { Runtime.trap("Product not found") };
+      case (?product) {
+        let updatedProduct = { product with imageUrls = images };
+        products.add(id, updatedProduct);
+      };
+    };
+  };
+
+  public shared ({ caller }) func setUpiId(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can set UPI ID");
+    };
+    if (id != "") {
+      upiId := id;
+    } else {
+      Runtime.trap("UPI ID cannot be empty");
+    };
+  };
+
+  public query func getUpiId() : async Text {
+    upiId;
+  };
+
+  // Stripe Integration (kept for backward compatibility)
   var stripeConfiguration : Stripe.StripeConfiguration = {
     secretKey = "sk_test-54";
     allowedCountries = ["IN"];
@@ -411,8 +469,7 @@ actor {
     OutCall.transform(input);
   };
 
-  // Define available payment methods as a constant
   public query func getPaymentMethods() : async [PaymentMethod] {
-    [#upi, #card, #cashOnDelivery];
+    [#upi, #cashOnDelivery];
   };
 };

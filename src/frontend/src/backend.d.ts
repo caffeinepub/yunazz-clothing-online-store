@@ -14,16 +14,11 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface Product {
-    id: string;
-    name: string;
-    isAvailable: boolean;
-    description: string;
-    productType: ProductType;
-    sizes: Array<ProductSize>;
-    stockCount: bigint;
-    price: bigint;
-    images: Array<ExternalBlob>;
+export interface ShoppingCart {
+    createdAt: bigint;
+    updatedAt: bigint;
+    customerId: string;
+    items: Array<CartItem>;
 }
 export interface TransformationOutput {
     status: bigint;
@@ -31,51 +26,52 @@ export interface TransformationOutput {
     headers: Array<http_header>;
 }
 export type ProductType = {
-    __kind__: "Shirt";
-    Shirt: null;
+    __kind__: "Dresses";
+    Dresses: null;
 } | {
-    __kind__: "Skirt";
-    Skirt: null;
+    __kind__: "Leggings";
+    Leggings: null;
 } | {
-    __kind__: "Pant";
-    Pant: null;
+    __kind__: "Tops";
+    Tops: null;
 } | {
-    __kind__: "Suit";
-    Suit: null;
+    __kind__: "Sarees";
+    Sarees: null;
 } | {
-    __kind__: "Shorts";
-    Shorts: null;
-} | {
-    __kind__: "Dress";
-    Dress: null;
-} | {
-    __kind__: "Sweater";
-    Sweater: null;
-} | {
-    __kind__: "TShirt";
-    TShirt: null;
-} | {
-    __kind__: "Jacket";
-    Jacket: null;
+    __kind__: "Kurtas";
+    Kurtas: null;
 } | {
     __kind__: "Other";
     Other: string;
 } | {
-    __kind__: "Blazer";
-    Blazer: null;
-} | {
     __kind__: "Jeans";
     Jeans: null;
 };
-export interface OrderRecord {
+export interface OrderItem {
+    size: ProductSize;
+    productId: string;
+    productName: string;
+    quantity: bigint;
+    price: bigint;
+}
+export interface CustomerProfile {
+    username: string;
+    createdAt: bigint;
+    email: string;
+    address: string;
+    phone: string;
+}
+export interface Order {
     id: string;
+    customerName: string;
     status: OrderStatus;
-    deliveryAddress: string;
     paymentMethod: PaymentMethod;
-    user: Principal;
+    customerPhone: string;
+    createdAt: bigint;
+    customerAddress: string;
     totalAmount: bigint;
-    timestamp: bigint;
-    products: Array<Product>;
+    customerId: string;
+    items: Array<OrderItem>;
 }
 export interface http_header {
     value: string;
@@ -87,11 +83,11 @@ export interface http_request_result {
     headers: Array<http_header>;
 }
 export interface ProductFilter {
+    inStock?: boolean;
     size?: ProductSize;
-    isAvailable?: boolean;
-    productType?: ProductType;
     maxPrice?: bigint;
     searchText?: string;
+    category?: ProductType;
     minPrice?: bigint;
 }
 export type ProductSize = {
@@ -143,17 +139,21 @@ export interface StripeConfiguration {
     allowedCountries: Array<string>;
     secretKey: string;
 }
-export interface ContactInfo {
-    instagram: string;
-    email: string;
-    phone: string;
-    instagramQr: ExternalBlob;
+export interface CartItem {
+    size: ProductSize;
+    productId: string;
+    quantity: bigint;
 }
-export interface UserProfile {
+export interface Product {
+    id: string;
+    stockQuantity: bigint;
+    imageUrls: Array<ExternalBlob>;
     name: string;
-    email: string;
-    address: string;
-    phone: string;
+    createdAt: bigint;
+    description: string;
+    sizes: Array<ProductSize>;
+    category: ProductType;
+    price: bigint;
 }
 export enum OrderStatus {
     shipped = "shipped",
@@ -176,27 +176,29 @@ export interface backendInterface {
     addProduct(product: Product): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createCheckoutSession(items: Array<ShoppingItem>, successUrl: string, cancelUrl: string): Promise<string>;
+    createOrUpdateCart(customerId: string, cart: ShoppingCart): Promise<void>;
+    deleteCart(customerId: string): Promise<void>;
     deleteProduct(id: string): Promise<void>;
-    getAllOrders(): Promise<Array<OrderRecord>>;
     getAllProducts(): Promise<Array<Product>>;
-    getCallerUserProfile(): Promise<UserProfile | null>;
+    getCallerUserProfile(): Promise<CustomerProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContactInfo(): Promise<ContactInfo>;
+    getCartByCustomerId(customerId: string): Promise<ShoppingCart>;
     getFilteredProducts(filter: ProductFilter): Promise<Array<Product>>;
-    getOrderById(id: string): Promise<OrderRecord>;
-    getOrdersByUser(user: Principal): Promise<Array<OrderRecord>>;
+    getOrderById(id: string): Promise<Order>;
+    getOrdersByCustomerId(customerId: string): Promise<Array<Order>>;
     getPaymentMethods(): Promise<Array<PaymentMethod>>;
     getProductById(id: string): Promise<Product>;
     getStripeConfiguration(): Promise<StripeConfiguration>;
     getStripeSessionStatus(sessionId: string): Promise<StripeSessionStatus>;
-    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUpiId(): Promise<string>;
+    getUserProfile(user: Principal): Promise<CustomerProfile | null>;
     initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     isStripeConfigured(): Promise<boolean>;
-    placeOrder(order: OrderRecord): Promise<void>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    setAdminContactInfo(info: ContactInfo): Promise<void>;
+    placeOrder(order: Order): Promise<void>;
+    saveCallerUserProfile(profile: CustomerProfile): Promise<void>;
     setStripeConfiguration(config: StripeConfiguration): Promise<void>;
+    setUpiId(id: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateOrderStatus(id: string, status: OrderStatus): Promise<void>;
     updateProduct(product: Product): Promise<void>;

@@ -15,6 +15,10 @@ export default {
             }
         },
         extend: {
+            fontFamily: {
+                display: ['Playfair Display', 'Georgia', 'serif'],
+                sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+            },
             colors: {
                 border: 'oklch(var(--border))',
                 input: 'oklch(var(--input))',
@@ -73,7 +77,9 @@ export default {
                 sm: 'calc(var(--radius) - 4px)'
             },
             boxShadow: {
-                xs: '0 1px 2px 0 rgba(0,0,0,0.05)'
+                xs: '0 1px 2px 0 rgba(0,0,0,0.05)',
+                card: '0 2px 12px 0 rgba(0,0,0,0.08)',
+                hover: '0 8px 32px 0 rgba(0,0,0,0.12)'
             },
             keyframes: {
                 'accordion-down': {

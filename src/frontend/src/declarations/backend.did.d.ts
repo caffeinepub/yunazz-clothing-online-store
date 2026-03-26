@@ -10,22 +10,37 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface ContactInfo {
-  'instagram' : string,
+export interface CartItem {
+  'size' : ProductSize,
+  'productId' : string,
+  'quantity' : bigint,
+}
+export interface CustomerProfile {
+  'username' : string,
+  'createdAt' : bigint,
   'email' : string,
+  'address' : string,
   'phone' : string,
-  'instagramQr' : ExternalBlob,
 }
 export type ExternalBlob = Uint8Array;
-export interface OrderRecord {
+export interface Order {
   'id' : string,
+  'customerName' : string,
   'status' : OrderStatus,
-  'deliveryAddress' : string,
   'paymentMethod' : PaymentMethod,
-  'user' : Principal,
+  'customerPhone' : string,
+  'createdAt' : bigint,
+  'customerAddress' : string,
   'totalAmount' : bigint,
-  'timestamp' : bigint,
-  'products' : Array<Product>,
+  'customerId' : string,
+  'items' : Array<OrderItem>,
+}
+export interface OrderItem {
+  'size' : ProductSize,
+  'productId' : string,
+  'productName' : string,
+  'quantity' : bigint,
+  'price' : bigint,
 }
 export type OrderStatus = { 'shipped' : null } |
   { 'cancelled' : null } |
@@ -37,21 +52,21 @@ export type PaymentMethod = { 'upi' : null } |
   { 'card' : null };
 export interface Product {
   'id' : string,
+  'stockQuantity' : bigint,
+  'imageUrls' : Array<ExternalBlob>,
   'name' : string,
-  'isAvailable' : boolean,
+  'createdAt' : bigint,
   'description' : string,
-  'productType' : ProductType,
   'sizes' : Array<ProductSize>,
-  'stockCount' : bigint,
+  'category' : ProductType,
   'price' : bigint,
-  'images' : Array<ExternalBlob>,
 }
 export interface ProductFilter {
+  'inStock' : [] | [boolean],
   'size' : [] | [ProductSize],
-  'isAvailable' : [] | [boolean],
-  'productType' : [] | [ProductType],
   'maxPrice' : [] | [bigint],
   'searchText' : [] | [string],
+  'category' : [] | [ProductType],
   'minPrice' : [] | [bigint],
 }
 export type ProductSize = { 'L' : null } |
@@ -61,18 +76,19 @@ export type ProductSize = { 'L' : null } |
   { 'XS' : null } |
   { 'XXL' : null } |
   { 'Custom' : string };
-export type ProductType = { 'Shirt' : null } |
-  { 'Skirt' : null } |
-  { 'Pant' : null } |
-  { 'Suit' : null } |
-  { 'Shorts' : null } |
-  { 'Dress' : null } |
-  { 'Sweater' : null } |
-  { 'TShirt' : null } |
-  { 'Jacket' : null } |
+export type ProductType = { 'Dresses' : null } |
+  { 'Leggings' : null } |
+  { 'Tops' : null } |
+  { 'Sarees' : null } |
+  { 'Kurtas' : null } |
   { 'Other' : string } |
-  { 'Blazer' : null } |
   { 'Jeans' : null };
+export interface ShoppingCart {
+  'createdAt' : bigint,
+  'updatedAt' : bigint,
+  'customerId' : string,
+  'items' : Array<CartItem>,
+}
 export interface ShoppingItem {
   'productName' : string,
   'currency' : string,
@@ -96,12 +112,6 @@ export interface TransformationOutput {
   'status' : bigint,
   'body' : Uint8Array,
   'headers' : Array<http_header>,
-}
-export interface UserProfile {
-  'name' : string,
-  'email' : string,
-  'address' : string,
-  'phone' : string,
 }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -145,27 +155,29 @@ export interface _SERVICE {
     [Array<ShoppingItem>, string, string],
     string
   >,
+  'createOrUpdateCart' : ActorMethod<[string, ShoppingCart], undefined>,
+  'deleteCart' : ActorMethod<[string], undefined>,
   'deleteProduct' : ActorMethod<[string], undefined>,
-  'getAllOrders' : ActorMethod<[], Array<OrderRecord>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [CustomerProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getContactInfo' : ActorMethod<[], ContactInfo>,
+  'getCartByCustomerId' : ActorMethod<[string], ShoppingCart>,
   'getFilteredProducts' : ActorMethod<[ProductFilter], Array<Product>>,
-  'getOrderById' : ActorMethod<[string], OrderRecord>,
-  'getOrdersByUser' : ActorMethod<[Principal], Array<OrderRecord>>,
+  'getOrderById' : ActorMethod<[string], Order>,
+  'getOrdersByCustomerId' : ActorMethod<[string], Array<Order>>,
   'getPaymentMethods' : ActorMethod<[], Array<PaymentMethod>>,
   'getProductById' : ActorMethod<[string], Product>,
   'getStripeConfiguration' : ActorMethod<[], StripeConfiguration>,
   'getStripeSessionStatus' : ActorMethod<[string], StripeSessionStatus>,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getUpiId' : ActorMethod<[], string>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [CustomerProfile]>,
   'initializeAccessControl' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isStripeConfigured' : ActorMethod<[], boolean>,
-  'placeOrder' : ActorMethod<[OrderRecord], undefined>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'setAdminContactInfo' : ActorMethod<[ContactInfo], undefined>,
+  'placeOrder' : ActorMethod<[Order], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[CustomerProfile], undefined>,
   'setStripeConfiguration' : ActorMethod<[StripeConfiguration], undefined>,
+  'setUpiId' : ActorMethod<[string], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateOrderStatus' : ActorMethod<[string, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<[Product], undefined>,
