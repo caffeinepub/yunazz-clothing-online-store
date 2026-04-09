@@ -6,7 +6,7 @@ import {
   useReducer,
   useState,
 } from "react";
-import type { ProductSize } from "../backend";
+import type { ProductSize } from "../types";
 
 export interface CartItem {
   productId: string;

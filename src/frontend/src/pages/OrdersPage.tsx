@@ -7,10 +7,11 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Search } from "lucide-react";
+import type React from "react";
 import { useState } from "react";
-import type { Order } from "../backend";
-import { OrderStatus } from "../backend";
 import { useGetOrdersByCustomerId } from "../hooks/useQueries";
+import type { Order } from "../types";
+import { OrderStatus } from "../types";
 
 function formatPrice(paise: bigint) {
   return `₹${(Number(paise) / 100).toFixed(0)}`;

@@ -5,7 +5,7 @@ import type {
   OrderStatus,
   Product,
   ProductFilter,
-} from "../backend";
+} from "../types";
 import { useActor } from "./useActor";
 
 // User Role & Profile
@@ -220,7 +220,13 @@ export function useUpdateOrderStatus() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: OrderStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: OrderStatus;
+    }) => {
       if (!actor) throw new Error("Actor not available");
       return actor.updateOrderStatus(id, status);
     },

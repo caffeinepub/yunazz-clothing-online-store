@@ -1,25 +1,21 @@
-import AccessControl "authorization/access-control";
-import Storage "blob-storage/Storage";
-import Stripe "stripe/stripe";
-import MixinStorage "blob-storage/Mixin";
+import AccessControl "mo:caffeineai-authorization/access-control";
+import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
+import Storage "mo:caffeineai-object-storage/Storage";
+import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
+import Stripe "mo:caffeineai-stripe/stripe";
+import OutCall "mo:caffeineai-http-outcalls/outcall";
 
-import OutCall "http-outcalls/outcall";
 import Map "mo:core/Map";
-import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
-import Time "mo:core/Time";
 import Order "mo:core/Order";
 import Nat "mo:core/Nat";
-import List "mo:core/List";
 import Int "mo:core/Int";
 import Principal "mo:core/Principal";
-import Blob "mo:core/Blob";
 
 
 actor {
-  include MixinStorage();
+  include MixinObjectStorage();
 
   // Product Types and Sizes
   public type ProductType = {
@@ -123,13 +119,13 @@ actor {
   };
 
   // ── Stable storage (persists across canister upgrades) ──────────────────────
-  stable var stableProducts    : [(Text, Product)]                        = [];
-  stable var stableCustomers   : [(Text, CustomerProfile)]                = [];
-  stable var stableCarts       : [(Text, ShoppingCart)]                   = [];
-  stable var stableOrders      : [(Text, Order)]                          = [];
-  stable var stableUpiId       : Text                                     = "";
-  stable var stableAdminAssigned : Bool                                   = false;
-  stable var stableUserRoles   : [(Principal, AccessControl.UserRole)]    = [];
+  stable var stableProducts    : [(Text, Product)]                     = [];
+  stable var stableCustomers   : [(Text, CustomerProfile)]             = [];
+  stable var stableCarts       : [(Text, ShoppingCart)]                = [];
+  stable var stableOrders      : [(Text, Order)]                       = [];
+  stable var stableUpiId       : Text                                  = "";
+  stable var stableAdminAssigned : Bool                                = false;
+  stable var stableUserRoles   : [(Principal, AccessControl.UserRole)] = [];
 
   // ── Runtime maps — loaded from stable storage on start ──────────────────────
   let products : Map.Map<Text, Product> = do {
@@ -165,6 +161,8 @@ actor {
     for ((k, v) in stableUserRoles.vals()) { m.add(k, v) };
     { var adminAssigned = stableAdminAssigned; userRoles = m }
   };
+
+  include MixinAuthorization(accessControlState);
 
   // ── Upgrade hooks ────────────────────────────────────────────────────────────
   system func preupgrade() {
@@ -253,21 +251,9 @@ actor {
     matchesSearchText(product, filter.searchText);
   };
 
-  // Access Control System
+  // Expose initializeAccessControl (calls the mixin's _initializeAccessControl)
   public shared ({ caller }) func initializeAccessControl() : async () {
     AccessControl.initialize(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-    AccessControl.getUserRole(accessControlState, caller);
-  };
-
-  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-    AccessControl.assignRole(accessControlState, caller, user, role);
-  };
-
-  public query ({ caller }) func isCallerAdmin() : async Bool {
-    AccessControl.isAdmin(accessControlState, caller);
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?CustomerProfile {

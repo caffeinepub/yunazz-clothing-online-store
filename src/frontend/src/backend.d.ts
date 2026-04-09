@@ -82,14 +82,6 @@ export interface http_request_result {
     body: Uint8Array;
     headers: Array<http_header>;
 }
-export interface ProductFilter {
-    inStock?: boolean;
-    size?: ProductSize;
-    maxPrice?: bigint;
-    searchText?: string;
-    category?: ProductType;
-    minPrice?: bigint;
-}
 export type ProductSize = {
     __kind__: "L";
     L: null;
@@ -112,6 +104,14 @@ export type ProductSize = {
     __kind__: "Custom";
     Custom: string;
 };
+export interface ProductFilter {
+    inStock?: boolean;
+    size?: ProductSize;
+    maxPrice?: bigint;
+    searchText?: string;
+    category?: ProductType;
+    minPrice?: bigint;
+}
 export interface ShoppingItem {
     productName: string;
     currency: string;
@@ -179,6 +179,7 @@ export interface backendInterface {
     createOrUpdateCart(customerId: string, cart: ShoppingCart): Promise<void>;
     deleteCart(customerId: string): Promise<void>;
     deleteProduct(id: string): Promise<void>;
+    getAllOrders(): Promise<Array<Order>>;
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<CustomerProfile | null>;
     getCallerUserRole(): Promise<UserRole>;

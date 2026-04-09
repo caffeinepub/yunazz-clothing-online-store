@@ -1,0 +1,109 @@
+// Version: 1.0.0
+type CartItem__113002840 =
+  {productId : Text; quantity : Nat; size : ProductSize__519788010};
+type CustomerProfile__89315307 =
+  {
+    address : Text;
+    createdAt : Int;
+    email : Text;
+    phone : Text;
+    username : Text
+  };
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type ExternalBlob__246066408 = Blob;
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type OrderItem__592186033 =
+  {
+    price : Nat;
+    productId : Text;
+    productName : Text;
+    quantity : Nat;
+    size : ProductSize__519788010
+  };
+type OrderStatus__838108808 =
+  {#cancelled; #confirmed; #delivered; #pending; #shipped};
+type Order__762448211 =
+  {
+    createdAt : Int;
+    customerAddress : Text;
+    customerId : Text;
+    customerName : Text;
+    customerPhone : Text;
+    id : Text;
+    items : [OrderItem__592186033];
+    paymentMethod : PaymentMethod__68978920;
+    status : OrderStatus__838108808;
+    totalAmount : Nat
+  };
+type PaymentMethod__68978920 = {#card; #cashOnDelivery; #upi};
+type ProductSize__519788010 = {#Custom : Text; #L; #M; #S; #XL; #XS; #XXL};
+type ProductType__192155352 =
+  {#Dresses; #Jeans; #Kurtas; #Leggings; #Other : Text; #Sarees; #Tops};
+type Product__853085059 =
+  {
+    category : ProductType__192155352;
+    createdAt : Int;
+    description : Text;
+    id : Text;
+    imageUrls : [ExternalBlob__246066408];
+    name : Text;
+    price : Nat;
+    sizes : [ProductSize__519788010];
+    stockQuantity : Nat
+  };
+type ShoppingCart__142368854 =
+  {
+    createdAt : Int;
+    customerId : Text;
+    items : [CartItem__113002840];
+    updatedAt : Int
+  };
+type UserRole__1054455867 = {#admin; #guest; #user};
+actor {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__605269027<Principal, UserRole__1054455867>
+    };
+  stable carts :
+    {
+      var root : Node__46230540<Text, ShoppingCart__142368854>;
+      var size : Nat__490723111
+    };
+  stable customers :
+    {
+      var root : Node__46230540<Text, CustomerProfile__89315307>;
+      var size : Nat__490723111
+    };
+  stable orders :
+    {
+      var root : Node__46230540<Text, Order__762448211>;
+      var size : Nat__490723111
+    };
+  stable products :
+    {
+      var root : Node__46230540<Text, Product__853085059>;
+      var size : Nat__490723111
+    };
+  stable var stableAdminAssigned : Bool;
+  stable var stableCarts : [(Text, ShoppingCart__142368854)];
+  stable var stableCustomers : [(Text, CustomerProfile__89315307)];
+  stable var stableOrders : [(Text, Order__762448211)];
+  stable var stableProducts : [(Text, Product__853085059)];
+  stable var stableUpiId : Text;
+  stable var stableUserRoles : [(Principal, UserRole__1054455867)];
+  stable var stripeConfiguration :
+    {allowedCountries : [Text]; secretKey : Text};
+  stable var upiId : Text
+};

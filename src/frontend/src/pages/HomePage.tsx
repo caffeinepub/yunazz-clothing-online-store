@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,13 +8,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -36,17 +28,13 @@ import { motion } from "motion/react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type {
-  Order,
-  OrderItem,
-  Product,
-  ProductSize,
-  ProductType,
-} from "../backend";
-import { OrderStatus, PaymentMethod } from "../backend";
+import ProductCard, {
+  formatPrice,
+  getProductTypeLabel,
+  getSizeLabel,
+} from "../components/ProductCard";
 import ReviewDialog, {
   StarRating,
-  getAverageRating,
   getReviews,
 } from "../components/ReviewDialog";
 import type { Review } from "../components/ReviewDialog";
@@ -56,32 +44,8 @@ import {
   useGetUpiId,
   usePlaceOrder,
 } from "../hooks/useQueries";
-
-function formatPrice(paise: bigint) {
-  return `₹${(Number(paise) / 100).toFixed(0)}`;
-}
-
-function getProductTypeLabel(cat: ProductType): string {
-  return cat.__kind__ === "Other"
-    ? (cat as { __kind__: "Other"; Other: string }).Other
-    : cat.__kind__;
-}
-
-function getSizeLabel(size: ProductSize): string {
-  return size.__kind__ === "Custom"
-    ? (size as { __kind__: "Custom"; Custom: string }).Custom
-    : size.__kind__;
-}
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Dresses: "bg-pink-100 text-pink-700",
-  Tops: "bg-rose-100 text-rose-700",
-  Jeans: "bg-blue-100 text-blue-700",
-  Kurtas: "bg-orange-100 text-orange-700",
-  Sarees: "bg-purple-100 text-purple-700",
-  Leggings: "bg-teal-100 text-teal-700",
-  Other: "bg-gray-100 text-gray-700",
-};
+import type { Order, OrderItem } from "../types";
+import { OrderStatus, PaymentMethod } from "../types";
 
 export default function HomePage() {
   const { data: products = [], isLoading } = useGetAllProducts();
@@ -97,6 +61,11 @@ export default function HomePage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
+  const [reviewDialogState, setReviewDialogState] = useState<{
+    open: boolean;
+    productId: string;
+    productName: string;
+  }>({ open: false, productId: "", productName: "" });
 
   useEffect(() => {
     const all = getReviews();
@@ -133,7 +102,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
         <img
           src="/assets/generated/hero-yunazz.dim_1200x500.jpg"
-          alt="Yunazz Clothing — Indian Fashion"
+          alt="Yunazz Clothing — Western Fashion for Women"
           className="w-full h-64 sm:h-80 md:h-[420px] object-cover object-top"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/70 via-foreground/30 to-transparent flex flex-col justify-center px-8 md:px-16">
@@ -146,7 +115,7 @@ export default function HomePage() {
               Yunazz Clothing
             </h1>
             <p className="text-white/80 text-lg mb-6 max-w-md">
-              Discover the beauty of Indian fashion — Kurtas, Sarees, Dresses
+              Discover trendy western fashion for women — Dresses, Tops, Jeans
               &amp; more.
             </p>
             <Button
@@ -178,29 +147,37 @@ export default function HomePage() {
             Explore Our Collections
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto">
-            Curated styles for every occasion — from everyday elegance to
-            festive glamour.
+            Curated western styles for every occasion — from casual chic to
+            evening glamour.
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {/* Female Model Card */}
+          {/* Women's Model Card 1 */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="group relative overflow-hidden rounded-2xl shadow-card cursor-pointer bg-card"
+            className="group relative overflow-hidden rounded-2xl shadow-sm cursor-pointer bg-card border border-border"
             onClick={() =>
               document
                 .getElementById("products")
                 ?.scrollIntoView({ behavior: "smooth" })
             }
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              document
+                .getElementById("products")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            tabIndex={0}
+            aria-label="Browse Women's Collection"
             data-ocid="models.female.card"
           >
             <div className="aspect-[3/4] overflow-hidden">
               <img
-                src="/assets/generated/female-model.dim_600x900.jpg"
+                src="/assets/generated/western-women-model-1.dim_600x800.jpg"
                 alt="Women's Collection"
                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
@@ -231,24 +208,32 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Male Model Card */}
+          {/* Women's Model Card 2 - Trendy Styles */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="group relative overflow-hidden rounded-2xl shadow-card cursor-pointer bg-card"
+            className="group relative overflow-hidden rounded-2xl shadow-sm cursor-pointer bg-card border border-border"
             onClick={() =>
               document
                 .getElementById("products")
                 ?.scrollIntoView({ behavior: "smooth" })
             }
-            data-ocid="models.male.card"
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              document
+                .getElementById("products")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            tabIndex={0}
+            aria-label="Browse Trendy Styles"
+            data-ocid="models.trendy.card"
           >
             <div className="aspect-[3/4] overflow-hidden">
               <img
-                src="/assets/generated/male-model.dim_600x900.jpg"
-                alt="Men's Collection"
+                src="/assets/generated/western-women-model-2.dim_600x800.jpg"
+                alt="Trendy Styles"
                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             </div>
@@ -259,7 +244,7 @@ export default function HomePage() {
                   New Arrivals
                 </span>
                 <h3 className="text-white font-display text-xl sm:text-2xl font-bold leading-tight">
-                  Men's Collection
+                  Trendy Styles
                 </h3>
               </div>
               <button
@@ -271,7 +256,7 @@ export default function HomePage() {
                     .getElementById("products")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                data-ocid="models.male.primary_button"
+                data-ocid="models.trendy.primary_button"
               >
                 Shop Now
               </button>
@@ -336,7 +321,13 @@ export default function HomePage() {
                 product={product}
                 index={idx + 1}
                 onAddToCart={addItem}
-                onReviewSubmitted={refreshReviews}
+                onReviewOpen={(id, name) =>
+                  setReviewDialogState({
+                    open: true,
+                    productId: id,
+                    productName: name,
+                  })
+                }
               />
             ))}
           </div>
@@ -458,6 +449,7 @@ export default function HomePage() {
                             )
                           }
                           className="w-6 h-6 rounded-full border flex items-center justify-center hover:bg-muted"
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
@@ -474,6 +466,7 @@ export default function HomePage() {
                             )
                           }
                           className="w-6 h-6 rounded-full border flex items-center justify-center hover:bg-muted"
+                          aria-label="Increase quantity"
                         >
                           <Plus className="h-3 w-3" />
                         </button>
@@ -482,6 +475,7 @@ export default function HomePage() {
                           onClick={() => removeItem(item.productId, item.size)}
                           className="ml-auto text-muted-foreground hover:text-destructive"
                           data-ocid={`cart.delete_button.${idx + 1}`}
+                          aria-label={`Remove ${item.productName} from cart`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -516,166 +510,16 @@ export default function HomePage() {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
       />
-    </>
-  );
-}
 
-function ProductCard({
-  product,
-  index,
-  onAddToCart,
-  onReviewSubmitted,
-}: {
-  product: Product;
-  index: number;
-  onAddToCart: (item: import("../context/CartContext").CartItem) => void;
-  onReviewSubmitted: () => void;
-}) {
-  const [selectedSize, setSelectedSize] = useState<ProductSize | null>(
-    product.sizes.length > 0 ? product.sizes[0] : null,
-  );
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const { avg, count } = getAverageRating(product.id);
-
-  useEffect(() => {
-    if (product.imageUrls.length > 0) {
-      const blob = product.imageUrls[0];
-      try {
-        setImageUrl(blob.getDirectURL());
-      } catch {
-        blob
-          .getBytes()
-          .then((bytes) => {
-            const url = URL.createObjectURL(new Blob([bytes]));
-            setImageUrl(url);
-          })
-          .catch(() => {});
-      }
-    }
-  }, [product.imageUrls]);
-
-  const handleAdd = () => {
-    if (!selectedSize) {
-      toast.error("Please select a size");
-      return;
-    }
-    onAddToCart({
-      productId: product.id,
-      productName: product.name,
-      price: product.price,
-      quantity: 1,
-      size: selectedSize,
-      imageUrl: imageUrl ?? undefined,
-    });
-    toast.success(`${product.name} added to cart!`);
-  };
-
-  const catLabel = getProductTypeLabel(product.category);
-
-  return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: Math.min(index * 0.05, 0.4) }}
-        className="group bg-card rounded-xl overflow-hidden shadow-card hover:shadow-hover transition-all duration-300"
-        data-ocid={`products.item.${index}`}
-      >
-        <div className="aspect-[3/4] relative overflow-hidden bg-muted">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={product.name}
-              className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-                imgLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onLoad={() => setImgLoaded(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-              <ShoppingBag className="h-10 w-10 text-muted-foreground opacity-40" />
-            </div>
-          )}
-          <Badge
-            className={`absolute top-2 left-2 text-xs border-0 ${
-              CATEGORY_COLORS[catLabel] ?? "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {catLabel}
-          </Badge>
-        </div>
-        <div className="p-3">
-          <h3 className="font-semibold text-sm truncate mb-1">
-            {product.name}
-          </h3>
-          {/* Star Rating */}
-          {count > 0 ? (
-            <div className="flex items-center gap-1 mb-1">
-              <StarRating rating={avg} size={12} />
-              <span className="text-xs text-muted-foreground">
-                {avg.toFixed(1)} · {count} {count === 1 ? "review" : "reviews"}
-              </span>
-            </div>
-          ) : (
-            <div className="mb-1" />
-          )}
-          {/* Write Review link */}
-          <button
-            type="button"
-            onClick={() => setReviewOpen(true)}
-            className="text-xs text-primary hover:underline mb-2 block"
-            data-ocid={`products.review.button.${index}`}
-          >
-            ✍️ Write a Review
-          </button>
-          <p className="text-primary font-bold text-base mb-2">
-            {formatPrice(product.price)}
-          </p>
-          {product.sizes.length > 1 && (
-            <Select
-              value={selectedSize ? getSizeLabel(selectedSize) : ""}
-              onValueChange={(val) => {
-                const found = product.sizes.find(
-                  (s) => getSizeLabel(s) === val,
-                );
-                if (found) setSelectedSize(found);
-              }}
-            >
-              <SelectTrigger className="h-7 text-xs mb-2">
-                <SelectValue placeholder="Size" />
-              </SelectTrigger>
-              <SelectContent>
-                {product.sizes.map((s) => (
-                  <SelectItem key={getSizeLabel(s)} value={getSizeLabel(s)}>
-                    {getSizeLabel(s)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Button
-            size="sm"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8"
-            onClick={handleAdd}
-            disabled={product.stockQuantity === BigInt(0)}
-          >
-            {product.stockQuantity === BigInt(0)
-              ? "Out of Stock"
-              : "Add to Cart"}
-          </Button>
-        </div>
-      </motion.div>
-
+      {/* Global Review Dialog */}
       <ReviewDialog
-        open={reviewOpen}
+        open={reviewDialogState.open}
         onClose={() => {
-          setReviewOpen(false);
-          onReviewSubmitted();
+          setReviewDialogState((s) => ({ ...s, open: false }));
+          refreshReviews();
         }}
-        productId={product.id}
-        productName={product.name}
+        productId={reviewDialogState.productId}
+        productName={reviewDialogState.productName}
       />
     </>
   );
@@ -868,6 +712,7 @@ function CheckoutDialog({
                         }}
                         className="text-muted-foreground hover:text-primary"
                         data-ocid="checkout.upi.copy.button"
+                        aria-label="Copy UPI ID"
                       >
                         <Copy className="h-4 w-4" />
                       </button>

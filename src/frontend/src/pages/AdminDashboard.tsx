@@ -44,8 +44,7 @@ import {
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ExternalBlob, OrderStatus, PaymentMethod, UserRole } from "../backend";
-import type { Order, Product, ProductSize, ProductType } from "../backend";
+import { ExternalBlob } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
@@ -58,6 +57,8 @@ import {
   useSetUpiId,
   useUpdateOrderStatus,
 } from "../hooks/useQueries";
+import { OrderStatus, PaymentMethod, UserRole } from "../types";
+import type { Order, Product, ProductSize, ProductType } from "../types";
 
 const PRODUCT_TYPES: { label: string; value: string }[] = [
   { label: "Jeans", value: "Jeans" },
